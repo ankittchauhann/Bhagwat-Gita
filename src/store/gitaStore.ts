@@ -17,6 +17,7 @@ export interface Verse {
 	chapter_number: number;
 	text: string;
 	transliteration: string;
+	word_meanings?: string;
 	meaning: {
 		author: string;
 		text: string;
@@ -41,7 +42,9 @@ interface GitaState {
 
 	// API calls
 	fetchChapters: () => Promise<void>;
+	fetchChapter: (chapterId: number) => Promise<void>;
 	fetchVerses: (chapterId: number) => Promise<void>;
+	fetchVerse: (chapterId: number, verseNumber: number) => Promise<void>;
 }
 
 const API_BASE_URL = "https://bhagavad-gita3.p.rapidapi.com/v2";
@@ -89,6 +92,30 @@ export const useGitaStore = create<GitaState>((set) => ({
 		}
 	},
 
+	fetchChapter: async (chapterId: number) => {
+		set({ loading: true, error: null });
+		try {
+			const response = await fetch(`${API_BASE_URL}/chapters/${chapterId}/`, {
+				headers: {
+					"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
+					"x-rapidapi-key": API_KEY,
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error("Failed to fetch chapter");
+			}
+
+			const chapter = await response.json();
+			set({ currentChapter: chapter, loading: false });
+		} catch (error) {
+			set({
+				error: error instanceof Error ? error.message : "An error occurred",
+				loading: false,
+			});
+		}
+	},
+
 	fetchVerses: async (chapterId: number) => {
 		set({ loading: true, error: null });
 		try {
@@ -108,6 +135,33 @@ export const useGitaStore = create<GitaState>((set) => ({
 
 			const verses = await response.json();
 			set({ verses, loading: false });
+		} catch (error) {
+			set({
+				error: error instanceof Error ? error.message : "An error occurred",
+				loading: false,
+			});
+		}
+	},
+
+	fetchVerse: async (chapterId: number, verseNumber: number) => {
+		set({ loading: true, error: null });
+		try {
+			const response = await fetch(
+				`${API_BASE_URL}/chapters/${chapterId}/verses/${verseNumber}`,
+				{
+					headers: {
+						"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
+						"x-rapidapi-key": API_KEY,
+					},
+				},
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to fetch verse");
+			}
+
+			const verse = await response.json();
+			set({ currentVerse: verse, loading: false });
 		} catch (error) {
 			set({
 				error: error instanceof Error ? error.message : "An error occurred",
