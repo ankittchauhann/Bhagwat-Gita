@@ -10,6 +10,7 @@ import { useGitaStore } from "@/store/gitaStore";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Pause, Play } from "lucide-react";
 import { useEffect, useState } from "react";
+
 export function ChapterPage() {
 	const navigate = useNavigate();
 	const params = useParams({ from: "/chapter/$chapterId" });
@@ -62,9 +63,11 @@ export function ChapterPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
+			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 flex items-center justify-center">
+				{/* Fixed Background Layer */}
+				<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
 				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto" />
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto" />
 					<p className="mt-4 text-slate-600">Loading chapter...</p>
 				</div>
 			</div>
@@ -73,7 +76,9 @@ export function ChapterPage() {
 
 	if (error) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
+			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 flex items-center justify-center">
+				{/* Fixed Background Layer */}
+				<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
 				<div className="text-center max-w-md mx-auto p-6">
 					<div className="text-red-500 text-6xl mb-4">🚫</div>
 					<h2 className="text-xl font-semibold text-slate-800 mb-2">
@@ -109,15 +114,14 @@ export function ChapterPage() {
 	if (!currentChapter) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
-				{" "}
+				{/* Fixed Background Layer */}
+				<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
 				<div className="text-center">
-					{" "}
-					<p className="text-slate-600">Chapter not found</p>{" "}
+					<p className="text-slate-600">Chapter not found</p>
 					<Button onClick={handleBackToChapters} className="mt-4">
-						{" "}
-						Back to Chapters{" "}
-					</Button>{" "}
-				</div>{" "}
+						Back to Chapters
+					</Button>
+				</div>
 			</div>
 		);
 	}
@@ -129,8 +133,9 @@ export function ChapterPage() {
 		englishTranslations[selectedTranslationIndex] || englishTranslations[0];
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950">
-			{" "}
-			{/* Header */}{" "}
+			{/* Fixed Background Layer */}
+			<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
+			{/* Header */}
 			<div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-orange-200 z-10">
 				{" "}
 				<div className="container mx-auto px-4 py-4">
