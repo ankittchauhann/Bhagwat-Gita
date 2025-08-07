@@ -11,17 +11,27 @@ export interface Chapter {
 	chapter_summary: string;
 }
 
+export interface Translation {
+	id: number;
+	description: string;
+	author_name: string;
+	language: string;
+}
+
+export interface Commentary {
+	id: number;
+	description: string;
+	author_name: string;
+	language: string;
+}
+
 export interface Verse {
 	id: number;
 	verse_number: number;
 	chapter_number: number;
 	text: string;
-	transliteration: string;
-	word_meanings?: string;
-	meaning: {
-		author: string;
-		text: string;
-	};
+	translations: Translation[];
+	commentaries: Commentary[];
 }
 
 interface GitaState {
@@ -47,8 +57,58 @@ interface GitaState {
 	fetchVerse: (chapterId: number, verseNumber: number) => Promise<void>;
 }
 
-const API_BASE_URL = "https://bhagavad-gita3.p.rapidapi.com/v2";
-const API_KEY = "4af41e915emshcd8cf0801c6079dp1b0ba6jsn3535b27141fd";
+const API_BASE_URL = "/api"; // Use proxy endpoint
+
+// Utility function to create fetch with retry and timeout
+const fetchWithRetry = async (
+	url: string,
+	options: RequestInit,
+	retries = 3,
+	timeout = 10000,
+): Promise<Response> => {
+	for (let i = 0; i < retries; i++) {
+		try {
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+			const response = await fetch(url, {
+				...options,
+				signal: controller.signal,
+			});
+
+			clearTimeout(timeoutId);
+
+			if (response.ok) {
+				return response;
+			}
+
+			// If it's a server error (500+) or rate limit (429), retry
+			if (response.status >= 500 || response.status === 429) {
+				if (i === retries - 1) {
+					throw new Error(`API request failed with status: ${response.status}`);
+				}
+				// Wait before retrying (exponential backoff)
+				await new Promise((resolve) => setTimeout(resolve, 2 ** i * 1000));
+				continue;
+			}
+
+			// For other errors, don't retry
+			throw new Error(`API request failed with status: ${response.status}`);
+		} catch (error) {
+			if (i === retries - 1) {
+				if (error instanceof Error && error.name === "AbortError") {
+					throw new Error(
+						"Request timeout - please check your internet connection",
+					);
+				}
+				throw error;
+			}
+			// Wait before retrying
+			await new Promise((resolve) => setTimeout(resolve, 2 ** i * 1000));
+		}
+	}
+	throw new Error("Maximum retries exceeded");
+};
 
 export const useGitaStore = create<GitaState>((set) => ({
 	chapters: [],
@@ -68,25 +128,24 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchChapters: async () => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetch(
+			const response = await fetchWithRetry(
 				`${API_BASE_URL}/chapters/?skip=0&limit=18`,
 				{
 					headers: {
-						"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
-						"x-rapidapi-key": API_KEY,
+						"Content-Type": "application/json",
 					},
 				},
 			);
 
-			if (!response.ok) {
-				throw new Error("Failed to fetch chapters");
-			}
-
 			const chapters = await response.json();
 			set({ chapters, loading: false });
 		} catch (error) {
+			console.error("Failed to fetch chapters:", error);
 			set({
-				error: error instanceof Error ? error.message : "An error occurred",
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to load chapters. Please check your internet connection and try again.",
 				loading: false,
 			});
 		}
@@ -95,22 +154,24 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchChapter: async (chapterId: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetch(`${API_BASE_URL}/chapters/${chapterId}/`, {
-				headers: {
-					"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
-					"x-rapidapi-key": API_KEY,
+			const response = await fetchWithRetry(
+				`${API_BASE_URL}/chapters/${chapterId}/`,
+				{
+					headers: {
+						"Content-Type": "application/json",
+					},
 				},
-			});
-
-			if (!response.ok) {
-				throw new Error("Failed to fetch chapter");
-			}
+			);
 
 			const chapter = await response.json();
 			set({ currentChapter: chapter, loading: false });
 		} catch (error) {
+			console.error(`Failed to fetch chapter ${chapterId}:`, error);
 			set({
-				error: error instanceof Error ? error.message : "An error occurred",
+				error:
+					error instanceof Error
+						? error.message
+						: `Failed to load chapter ${chapterId}. Please try again.`,
 				loading: false,
 			});
 		}
@@ -119,25 +180,24 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchVerses: async (chapterId: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetch(
+			const response = await fetchWithRetry(
 				`${API_BASE_URL}/chapters/${chapterId}/verses`,
 				{
 					headers: {
-						"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
-						"x-rapidapi-key": API_KEY,
+						"Content-Type": "application/json",
 					},
 				},
 			);
 
-			if (!response.ok) {
-				throw new Error("Failed to fetch verses");
-			}
-
 			const verses = await response.json();
 			set({ verses, loading: false });
 		} catch (error) {
+			console.error(`Failed to fetch verses for chapter ${chapterId}:`, error);
 			set({
-				error: error instanceof Error ? error.message : "An error occurred",
+				error:
+					error instanceof Error
+						? error.message
+						: `Failed to load verses for chapter ${chapterId}. Please try again.`,
 				loading: false,
 			});
 		}
@@ -146,25 +206,27 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchVerse: async (chapterId: number, verseNumber: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetch(
-				`${API_BASE_URL}/chapters/${chapterId}/verses/${verseNumber}`,
+			const response = await fetchWithRetry(
+				`${API_BASE_URL}/chapters/${chapterId}/verses/${verseNumber}/`,
 				{
 					headers: {
-						"x-rapidapi-host": "bhagavad-gita3.p.rapidapi.com",
-						"x-rapidapi-key": API_KEY,
+						"Content-Type": "application/json",
 					},
 				},
 			);
 
-			if (!response.ok) {
-				throw new Error("Failed to fetch verse");
-			}
-
 			const verse = await response.json();
 			set({ currentVerse: verse, loading: false });
 		} catch (error) {
+			console.error(
+				`Failed to fetch verse ${chapterId}.${verseNumber}:`,
+				error,
+			);
 			set({
-				error: error instanceof Error ? error.message : "An error occurred",
+				error:
+					error instanceof Error
+						? error.message
+						: `Failed to load verse ${verseNumber}. Please try again.`,
 				loading: false,
 			});
 		}

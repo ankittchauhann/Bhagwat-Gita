@@ -1,110 +1,167 @@
 # Bhagavad Gita App 🕉️
 
-A beautiful, interactive web application for reading and studying the Bhagavad Gita, built with React, TypeScript, and modern web technologies.
+A beautiful, immersive web application for reading and studying the Bhagavad Gita, built with modern React, TypeScript, and spiritual design principles. Experience the timeless wisdom of Krishna's teachings through an elegant, accessible digital interface.
 
 ## ✨ Features
 
-### 🏛️ **Dashboard Experience**
+### 🏛️ **Sacred Dashboard Experience**
 
-- Beautiful Sanskrit welcome page with spiritual design
-- Gradient backgrounds inspired by traditional Indian art
-- "Namaste" greeting to begin your spiritual journey
-- Feature showcase cards highlighting app capabilities
-- Sacred verse quotes with translations
+- **Spiritual Welcome**: Beautiful Sanskrit greeting with "Namaste" to begin your journey
+- **Divine Aesthetics**: Gradient backgrounds inspired by traditional Indian art (oranges, reds, golds)  
+- **Sacred Typography**: Authentic Devanagari fonts (Noto Sans Devanagari, Mangal)
+- **Interactive Journey**: Feature cards showcasing app capabilities
+- **Inspirational Content**: Sacred verse quotes with translations
 
-### 📖 **Chapter Navigation**
+### � **Comprehensive Chapter Navigation**
 
-- Browse all 18 chapters with beautiful overview cards
-- Real-time search functionality across chapters
-- Chapter cards display:
-  - Sanskrit names with proper Devanagari fonts
-  - Transliteration in Roman script
-  - English translations and meanings
-  - Verse counts and detailed summaries
-- Live API integration for chapter data
+- **All 18 Chapters**: Complete Bhagavad Gita with real API integration
+- **Smart Search**: Real-time filtering across Sanskrit names, transliterations, and meanings
+- **Rich Chapter Cards**:
+  - Sanskrit names with proper Devanagari rendering
+  - Roman transliteration for pronunciation guidance  
+  - English translations and spiritual meanings
+  - Verse counts and detailed chapter summaries
+- **Live Data**: Real-time integration with Bhagavad Gita API
 
-### 🎯 **Chapter Detail View**
+### 🎯 **Immersive Chapter Experience**
 
-- Individual chapter pages with complete information
-- Sticky navigation header with chapter details
-- Sidebar with all verses for quick navigation
-- Main content area featuring:
-  - Chapter summary with spiritual context
-  - Sanskrit verses with authentic Devanagari typography
-  - Roman transliteration for pronunciation
-  - English translations with commentary
-  - Audio playback controls (UI ready)
-  - Previous/Next verse navigation
+- **Comprehensive Verse Display**: Individual pages for each chapter with complete spiritual content
+- **Intelligent Navigation**:
+  - Sticky header with chapter context
+  - Scrollable sidebar with all verses for instant access
+  - Previous/Next verse navigation with keyboard support
+- **Rich Content Presentation**:
+  - **Sanskrit Verses**: Authentic Devanagari with proper line breaks
+  - **Multiple English Translations**: Support for different scholars and authors
+  - **Hindi Translations**: Comprehensive Hindi commentary support
+  - **Scholarly Commentaries**: Access to traditional and modern interpretations
+  - **Translation Selector**: Switch between different English translation authors
+  - **Audio Ready**: UI prepared for Sanskrit recitation playback
 
-### 🎨 **Design & User Experience**
+### 🛡️ **Robust Technical Foundation**
 
-- **Responsive Design**: Perfect on desktop, tablet, and mobile
-- **Spiritual Aesthetics**: Warm oranges, reds, and golds
-- **Typography**: Special Sanskrit fonts (Noto Sans Devanagari, Mangal)
-- **Modern UI**: ShadCN components with glass morphism effects
-- **Smooth Transitions**: Elegant animations and hover effects
-- **Accessibility**: Proper contrast ratios and keyboard navigation
+- **CORS Resolution**: Intelligent proxy server setup for seamless API access
+- **Advanced Error Handling**:
+  - Automatic retry logic with exponential backoff
+  - Timeout protection (10-second request limits)
+  - Network status monitoring
+  - Descriptive error messages with troubleshooting hints
+- **Performance Optimized**:
+  - Intelligent loading states
+  - Request caching and deduplication
+  - Responsive image loading
+  - Smooth transitions and animations
+
+### 🎨 **Modern Design Philosophy**
+
+- **Fully Responsive**: Perfect experience on desktop, tablet, and mobile
+- **Spiritual Color Palette**: Warm oranges, deep reds, and golden accents
+- **Glass Morphism**: Modern UI with backdrop blur effects and transparency
+- **Accessibility First**: Proper contrast ratios, keyboard navigation, screen reader support
+- **Smooth Interactions**: Elegant hover effects and micro-animations
 
 ## 🛠️ Tech Stack
 
-### **Frontend**
+### **Core Framework**
 
-- **React 19** with **TypeScript** for type safety
-- **TanStack Router** for file-based routing
-- **Zustand** for lightweight state management
-- **Vite** for lightning-fast development and building
+- **React 19** with **TypeScript** for type safety and modern features
+- **TanStack Router** for file-based routing with dynamic parameters
+- **Zustand** for lightweight, efficient state management
+- **Vite** with proxy configuration for development and lightning-fast builds
 
-### **UI & Styling**
+### **UI & Design System**
 
 - **Tailwind CSS 4.0** for utility-first styling
-- **ShadCN UI Components** for consistent design system
-- **Lucide React** for beautiful icons
+- **ShadCN UI Components** for consistent, accessible design system
+- **Lucide React** for beautiful, consistent iconography
 - **Custom CSS** for Sanskrit fonts and spiritual aesthetics
+- **Responsive Grid Layouts** for multi-device compatibility
 
-### **Development Tools**
+### **Development & Build Tools**
 
-- **Bun** as package manager for speed
-- **Biome** for linting and formatting
-- **TypeScript** for robust type checking
+- **Bun** as package manager for speed and efficiency
+- **Biome** for consistent linting and code formatting
+- **TypeScript** for robust type checking and developer experience
+- **Vite Proxy Server** for CORS resolution and API management
 - **Hot Module Replacement** for instant development feedback
 
-## 🔌 API Integration
+### **API Integration & Data Management**
 
-The app integrates with the Bhagavad Gita API from RapidAPI for authentic spiritual content.
+- **RapidAPI Integration** with Bhagavad Gita API v2
+- **Proxy Server Configuration** for CORS bypass and header management
+- **Advanced Retry Logic** with exponential backoff for reliability
+- **Request Timeout Handling** for better user experience
+- **Network Status Monitoring** for connectivity awareness
 
-### **Current API Endpoints**
+## 🔌 API Integration & CORS Solution
 
-#### 1. Get All Chapters
+### **CORS Resolution**
 
-```bash
-curl --request GET \
-  --url 'https://bhagavad-gita3.p.rapidapi.com/v2/chapters/?skip=0&limit=18' \
-  --header 'x-rapidapi-host: bhagavad-gita3.p.rapidapi.com' \
-  --header 'x-rapidapi-key: YOUR_API_KEY'
+We've implemented a sophisticated proxy server solution to handle CORS restrictions:
+
+```typescript
+// vite.config.ts - Proxy Configuration
+server: {
+  proxy: {
+    '/api': {
+      target: 'https://bhagavad-gita3.p.rapidapi.com/v2',
+      changeOrigin: true,
+      rewrite: (path) => path.replace(/^\/api/, ''),
+      configure: (proxy) => {
+        proxy.on('proxyReq', (proxyReq) => {
+          proxyReq.setHeader('x-rapidapi-host', 'bhagavad-gita3.p.rapidapi.com');
+          proxyReq.setHeader('x-rapidapi-key', 'YOUR_API_KEY');
+        });
+      },
+    },
+  },
+}
 ```
 
-#### 2. Get Specific Chapter
+### **API Endpoints**
+
+#### 1. **All Chapters**
 
 ```bash
-curl --request GET \
-  --url 'https://bhagavad-gita3.p.rapidapi.com/v2/chapters/1/' \
-  --header 'x-rapidapi-host: bhagavad-gita3.p.rapidapi.com' \
-  --header 'x-rapidapi-key: YOUR_API_KEY'
+GET /api/chapters/?skip=0&limit=18
 ```
 
-### **Prepared for Future APIs**
+#### 2. **Specific Chapter**
 
-- ✅ `/chapters/{id}/verses` - Get all verses of a chapter
-- ✅ `/chapters/{chapter}/verses/{verse}` - Get specific verse
-- ✅ Store structure ready for real verse data
-- ✅ Loading and error states implemented
+```bash
+GET /api/chapters/{id}/
+```
 
-## 🚀 Getting Started
+#### 3. **Chapter Verses** (Ready)
+
+```bash
+GET /api/chapters/{id}/verses
+```
+
+#### 4. **Individual Verse**
+
+```bash
+GET /api/chapters/{chapter}/verses/{verse}/
+```
+
+### **Advanced Error Handling**
+
+```typescript
+const fetchWithRetry = async (url, options, retries = 3, timeout = 10000) => {
+  // Automatic retry with exponential backoff
+  // Request timeout protection
+  // Network error differentiation
+  // CORS error handling
+}
+```
+
+## 🚀 Quick Start
 
 ### **Prerequisites**
 
-- Node.js 18+ or Bun runtime
-- Modern web browser
+- **Node.js 18+** or **Bun runtime**
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
+- **RapidAPI Key** for Bhagavad Gita API
 
 ### **Installation**
 
@@ -122,11 +179,10 @@ curl --request GET \
    ```
 
 3. **Configure API Key**
-   - Open `src/store/gitaStore.ts`
-   - Replace `API_KEY` with your RapidAPI key
+   Update the API key in `vite.config.ts`:
 
    ```typescript
-   const API_KEY = "your-rapidapi-key-here"
+   proxyReq.setHeader('x-rapidapi-key', 'your-rapidapi-key-here');
    ```
 
 4. **Start development server**
@@ -135,7 +191,7 @@ curl --request GET \
    bun run dev
    ```
 
-   The app will be available at `http://localhost:3000` (or next available port)
+   App will be available at `http://localhost:3000`
 
 5. **Build for production**
 
@@ -143,65 +199,62 @@ curl --request GET \
    bun run build
    ```
 
-6. **Preview production build**
-
-   ```bash
-   bun run serve
-   ```
-
-## 📁 Project Structure
+## 📁 Project Architecture
 
 ```
 src/
 ├── components/
-│   ├── ui/                    # ShadCN UI components
-│   │   ├── button.tsx         # Reusable button component
-│   │   ├── card.tsx           # Card components for content
-│   │   └── input.tsx          # Input components
-│   ├── Dashboard.tsx          # Beautiful home page
-│   ├── ChaptersPage.tsx       # All chapters view with search
-│   └── ChapterPage.tsx        # Individual chapter with verses
+│   ├── ui/                     # ShadCN UI Component Library
+│   │   ├── button.tsx          # Customizable button component
+│   │   ├── card.tsx            # Content card components
+│   │   ├── input.tsx           # Form input components
+│   │   └── ...                 # Additional UI primitives
+│   ├── Dashboard.tsx           # Sacred welcome experience
+│   ├── ChaptersPage.tsx        # All chapters with search
+│   ├── ChapterPage.tsx         # Rich chapter/verse display
+│   └── Header.tsx              # Navigation header component
 ├── store/
-│   └── gitaStore.ts           # Zustand state management
+│   └── gitaStore.ts            # Zustand state management
+├── hooks/
+│   └── useNetworkStatus.ts     # Network connectivity monitoring
 ├── lib/
-│   └── utils.ts               # Utility functions (cn helper)
-├── routes/                    # TanStack Router file-based routing
-│   ├── __root.tsx             # Root layout component
-│   ├── index.tsx              # Dashboard route (/)
-│   ├── chapters.tsx           # Chapters listing (/chapters)
-│   └── chapter.$chapterId.tsx # Dynamic chapter route
-└── styles.css                # Global styles with Sanskrit fonts
+│   └── utils.ts                # Utility functions (cn helper)
+├── routes/                     # File-based routing system
+│   ├── __root.tsx              # Root layout with navigation
+│   ├── index.tsx               # Dashboard route (/)
+│   ├── chapters.tsx            # Chapters listing (/chapters)  
+│   └── chapter.$chapterId.tsx  # Dynamic chapter pages
+└── styles.css                 # Global styles with Sanskrit fonts
 ```
 
-## 🧭 Navigation Flow
+## 🧭 User Journey Flow
 
+```mermaid
+graph TD
+    A[Sacred Dashboard] -->|"Namaste" Button| B[Chapters Overview]
+    B -->|Search Chapters| B
+    B -->|Select Chapter| C[Chapter Detail View]
+    C -->|Browse Verses| D[Individual Verses]
+    C -->|Previous/Next| C
+    D -->|Multiple Translations| E[Rich Verse Content]
+    E -->|Commentary| F[Scholarly Insights]
 ```
-Dashboard (/) 
-    ↓ "Namaste" button
-Chapters Page (/chapters)
-    ↓ Click any chapter
-Chapter Detail (/chapter/{id})
-    ↓ Browse verses in sidebar
-Individual Verses (with API integration ready)
-```
 
-## 📊 State Management
-
-The app uses Zustand for efficient state management:
+## 🏗️ State Management Architecture
 
 ```typescript
 interface GitaState {
-  // Data
-  chapters: Chapter[]
-  currentChapter: Chapter | null
-  verses: Verse[]
-  currentVerse: Verse | null
+  // Core Data
+  chapters: Chapter[]              // All 18 chapters
+  currentChapter: Chapter | null   // Active chapter
+  verses: Verse[]                  // Chapter verses
+  currentVerse: Verse | null       // Active verse
   
   // UI State
-  loading: boolean
-  error: string | null
+  loading: boolean                 // Loading indicator
+  error: string | null            // Error messages
   
-  // API Actions
+  // API Actions with Error Handling
   fetchChapters: () => Promise<void>
   fetchChapter: (id: number) => Promise<void>
   fetchVerses: (chapterId: number) => Promise<void>
@@ -209,127 +262,252 @@ interface GitaState {
 }
 ```
 
-## 🎨 Design Philosophy
+### **Enhanced Verse Interface**
 
-### **Color Palette**
+```typescript
+interface Verse {
+  id: number
+  verse_number: number
+  chapter_number: number
+  text: string                    // Sanskrit verse
+  translations: Translation[]      // Multiple language support
+  commentaries: Commentary[]       // Scholarly interpretations
+}
 
-- **Primary**: Warm oranges (`#ea580c`, `#f97316`)
-- **Secondary**: Deep reds (`#dc2626`, `#ef4444`)
-- **Accent**: Golden yellows (`#eab308`, `#f59e0b`)
-- **Neutral**: Sophisticated grays (`#64748b`, `#475569`)
+interface Translation {
+  id: number
+  description: string             // Translation text
+  author_name: string            // Scholar name
+  language: string               // "english" | "hindi" | etc.
+}
+```
 
-### **Typography**
+## 🎨 Design System
 
-- **Sanskrit**: Noto Sans Devanagari, Mangal, Kokila
-- **English**: Inter, system fonts for readability
-- **Hierarchy**: Clear font sizes and weights for content scanning
+### **Sacred Color Palette**
 
-### **Visual Elements**
+```css
+/* Primary Colors */
+--orange-50: #fff7ed    /* Soft backgrounds */
+--orange-500: #f97316   /* Primary actions */
+--orange-600: #ea580c   /* Hover states */
 
-- **Gradients**: Subtle transitions for depth
-- **Shadows**: Soft elevations for modern feel
-- **Border Radius**: Consistent rounded corners
-- **Spacing**: Harmonious padding and margins
+/* Secondary Colors */  
+--red-500: #ef4444      /* Accent elements */
+--red-600: #dc2626      /* Active states */
+
+/* Golden Accents */
+--yellow-50: #fefce8    /* Subtle highlights */
+--yellow-500: #eab308   /* Golden touches */
+
+/* Neutral Grays */
+--slate-600: #475569    /* Body text */
+--slate-700: #334155    /* Headings */
+```
+
+### **Typography Hierarchy**
+
+```css
+/* Sanskrit Text */
+font-family: 'Noto Sans Devanagari', 'Mangal', serif;
+
+/* English Content */
+font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+/* Size Scale */
+--text-xs: 0.75rem      /* Captions */
+--text-sm: 0.875rem     /* Body small */
+--text-base: 1rem       /* Body text */
+--text-lg: 1.125rem     /* Emphasis */
+--text-xl: 1.25rem      /* Headings */
+--text-2xl: 1.5rem      /* Page titles */
+```
 
 ## 🔧 Available Scripts
 
 ```bash
 # Development
-bun run dev          # Start dev server with hot reload
-bun run build        # Build for production
-bun run serve        # Preview production build
+bun run dev              # Start dev server with proxy
+bun run build            # Production build
+bun run serve            # Preview production build
 
-# Code Quality  
-bun run lint         # Run Biome linter
-bun run format       # Format code with Biome
-bun run check        # Run both lint and format
+# Code Quality
+bun run lint             # Run Biome linter
+bun run format           # Format with Biome
+bun run check            # Lint + format combined
 
-# Testing (when implemented)
-bun run test         # Run test suite
+# Future Testing
+bun run test             # Run test suite (when implemented)
 ```
 
-## 🚧 Roadmap & Future Enhancements
+## 🌟 Production Deployment
 
-### **Phase 1: Core Features** ✅
+### **Deployment Options**
 
-- [x] Beautiful dashboard with spiritual design
-- [x] All chapters API integration
-- [x] Individual chapter API integration
-- [x] Search functionality
-- [x] Responsive design
-- [x] Sanskrit font support
+1. **Vercel** (Recommended)
 
-### **Phase 2: Verses Integration** (Ready for APIs)
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+   
+   # Deploy
+   vercel
+   ```
 
-- [ ] All verses API integration
-- [ ] Individual verse API integration  
-- [ ] Word-by-word meanings
-- [ ] Commentary from different authors
+2. **Netlify**
 
-### **Phase 3: Enhanced Experience**
+   ```bash
+   # Build and deploy
+   bun run build
+   # Upload dist/ folder to Netlify
+   ```
 
-- [ ] Audio playback for Sanskrit recitation
-- [ ] Bookmarking favorite verses
+3. **Custom Server**
+   - Serve `dist/` folder with a static server
+   - Configure API proxy for production
+
+### **Environment Variables**
+
+```env
+VITE_RAPIDAPI_KEY=your-api-key-here
+VITE_API_BASE_URL=https://your-api-proxy.com
+```
+
+## 🚧 Future Roadmap
+
+### **Phase 1: Enhanced Verse Experience** 📍 Current
+
+- [x] Rich verse display with multiple translations
+- [x] Commentary integration
+- [x] Translation author selection
+- [x] Enhanced error handling with retry logic
+- [x] CORS resolution with proxy server
+
+### **Phase 2: Audio & Multimedia**
+
+- [ ] Sanskrit pronunciation audio
+- [ ] Verse-by-verse audio playback
+- [ ] Audio controls and speed adjustment
+- [ ] Offline audio caching
+
+### **Phase 3: Personalization**
+
+- [ ] Bookmark favorite verses
+- [ ] Personal reading progress tracking
 - [ ] Daily verse notifications
-- [ ] Dark mode support
-- [ ] Offline support with service workers
+- [ ] Reading statistics and insights
 
 ### **Phase 4: Advanced Features**
 
-- [ ] Multi-language support (Hindi, Telugu, Tamil)
-- [ ] Verse-by-verse search
-- [ ] Commentary comparison
-- [ ] Reading progress tracking
-- [ ] Social sharing capabilities
+- [ ] Multi-language support (Telugu, Tamil, Gujarati)
+- [ ] Dark mode with spiritual themes  
+- [ ] Advanced search across all verses
+- [ ] Commentary comparison view
+- [ ] Social sharing with beautiful verse cards
+
+### **Phase 5: Community & Learning**
+
+- [ ] Study guides and verse explanations
+- [ ] Meditation timers with verse focus
+- [ ] Community discussions and insights
+- [ ] Scholar interviews and video content
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+We welcome contributions that enhance the spiritual and technical quality of this app!
+
+### **How to Contribute**
+
+1. **Fork the repository**
+2. **Create feature branch** (`git checkout -b feature/spiritual-enhancement`)
+3. **Make changes** with proper TypeScript types
+4. **Test thoroughly** across different devices
+5. **Commit with meaning** (`git commit -m 'Add verse bookmarking'`)
+6. **Push to branch** (`git push origin feature/spiritual-enhancement`)
+7. **Create Pull Request** with detailed description
 
 ### **Development Guidelines**
 
-- Follow TypeScript best practices
-- Use Biome for consistent formatting
-- Write meaningful commit messages
-- Test your changes across different screen sizes
-- Ensure accessibility standards are met
+- **Code Quality**: Follow TypeScript best practices
+- **Accessibility**: Ensure WCAG compliance
+- **Performance**: Optimize for mobile devices
+- **Spirituality**: Maintain respectful, authentic content
+- **Testing**: Test on multiple browsers and screen sizes
 
-## 📄 License
+## � License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🙏 Acknowledgments & Credits
 
-- **Bhagavad Gita API** by RapidAPI for authentic content
+### **Spiritual Sources**
+
+- **Bhagavad Gita API** by RapidAPI for authentic Sanskrit content
+- **Traditional Commentators** for timeless spiritual wisdom
+- **Modern Scholars** for accessible translations
+
+### **Technical Foundation**
+
 - **ShadCN** for beautiful, accessible UI components
-- **Tailwind CSS** for utility-first styling approach
-- **TanStack Router** for excellent routing solution
-- **The timeless wisdom of the Bhagavad Gita** for spiritual guidance
+- **Tailwind CSS** for expressive, maintainable styling
+- **TanStack Router** for elegant routing solutions
+- **Zustand** for simple, effective state management
+- **Vite** for lightning-fast development experience
+
+### **Design Inspiration**
+
+- **Traditional Indian Art** for color palettes and aesthetics  
+- **Modern Web Design** for accessibility and user experience
+- **Sanskrit Typography** for authentic spiritual presentation
 
 ---
 
 ## 🕉️ About the Bhagavad Gita
 
-The Bhagavad Gita is a 700-verse Sanskrit scripture that is part of the ancient Indian epic Mahabharata. It is a conversation between Prince Arjuna and Lord Krishna, who serves as his charioteer, at the start of the Kurukshetra War.
+The **Bhagavad Gita** ("The Divine Song") is a 700-verse Sanskrit scripture that forms part of the ancient Indian epic **Mahabharata**. It presents a profound dialogue between **Prince Arjuna** and **Lord Krishna** at the sacred battlefield of Kurukshetra.
 
-**Core Themes:**
+### **Universal Teachings**
 
-- **Dharma** (righteous duty)
-- **Karma** (action and consequences)  
-- **Moksha** (liberation/salvation)
-- **Bhakti** (devotion)
+- **🏛️ Dharma** - Righteous duty and moral responsibility
+- **⚡ Karma** - Action, intention, and spiritual consequences  
+- **🕉️ Moksha** - Liberation and ultimate spiritual realization
+- **💝 Bhakti** - Devotion, love, and surrender to the Divine
 
-This app aims to make these timeless teachings accessible to modern readers while preserving the spiritual essence and authenticity of the original text.
+### **Timeless Relevance**
+
+The Gita addresses fundamental human questions:
+
+- How to live with purpose and meaning
+- Balancing duty with personal desires  
+- Finding peace amidst life's challenges
+- Discovering our true spiritual nature
+
+This app aims to make these profound teachings accessible to modern seekers while preserving the **spiritual authenticity** and **sacred wisdom** of the original Sanskrit text.
 
 ---
 
-**श्रीमद्भगवद्गीता किजय हो** - "Victory to the Divine Song"
+## 🌟 Final Words
 
-*May this app illuminate your path to spiritual wisdom* 🙏✨
+> **"यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।  
+> अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥"**  
+>
+> *"Whenever there is decline in righteousness and rise in unrighteousness, O Arjuna, at that time I manifest myself on earth."* - **Bhagavad Gita 4.7**
+
+May this digital offering serve as a bridge between ancient wisdom and modern technology, bringing the eternal light of Krishna's teachings to seekers around the world.
+
+**🕉️ Om Shanti Shanti Shanti 🙏**
+
+---
+
+<div align="center">
+
+### **Ready to Begin Your Spiritual Journey?**
+
+**[🚀 Launch the App](http://localhost:3000) | [📖 Read the Gita](http://localhost:3000/chapters) | [🙏 Start with Namaste](http://localhost:3000)**
+
+*Built with � for spiritual seekers everywhere*
+
+</div>
 
 First add your dependencies:
 
