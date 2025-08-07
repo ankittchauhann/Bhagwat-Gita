@@ -70,6 +70,53 @@ export function ChapterPage() {
 	const [selectedVerse, setSelectedVerse] = useState<number>(1);
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [selectedTranslationIndex, setSelectedTranslationIndex] = useState(0);
+	const [speechLanguage, setSpeechLanguage] = useState<string>("hi-IN"); // Default to Hindi
+
+	// Text-to-Speech language options
+	const speechLanguages = [
+		{ value: "hi-IN", label: "Hindi", flag: "🇮🇳" },
+		{ value: "en-US", label: "English", flag: "🇺🇸" },
+		{ value: "hi-IN-sanskrit", label: "Sanskrit (Hindi Voice)", flag: "🕉️" }, // Use Hindi voice for Sanskrit
+	];
+
+	// Text-to-Speech functions
+	const speakText = useCallback((text: string, lang: string) => {
+		if (!window.speechSynthesis) {
+			alert("Text-to-speech is not supported in your browser.");
+			return;
+		}
+
+		// Stop any ongoing speech
+		window.speechSynthesis.cancel();
+
+		const utterance = new SpeechSynthesisUtterance(text);
+		utterance.lang = lang;
+		utterance.rate = 0.8; // Slower for better comprehension
+		utterance.pitch = 1;
+		utterance.volume = 1;
+
+		utterance.onstart = () => setIsPlaying(true);
+		utterance.onend = () => setIsPlaying(false);
+		utterance.onerror = () => setIsPlaying(false);
+
+		window.speechSynthesis.speak(utterance);
+	}, []);
+
+	const stopSpeech = useCallback(() => {
+		if (window.speechSynthesis) {
+			window.speechSynthesis.cancel();
+			setIsPlaying(false);
+		}
+	}, []);
+
+	// Clean up speech when component unmounts or verse changes
+	useEffect(() => {
+		return () => {
+			if (window.speechSynthesis) {
+				window.speechSynthesis.cancel();
+			}
+		};
+	}, []);
 
 	// Memoized event handlers to prevent unnecessary re-renders
 	const handleBackToChapters = useCallback(() => {
@@ -120,6 +167,58 @@ export function ChapterPage() {
 			englishTranslations[selectedTranslationIndex] || englishTranslations[0],
 		[englishTranslations, selectedTranslationIndex],
 	);
+
+	// Text-to-Speech play/pause handler (defined after englishTranslations)
+	const handlePlayPause = useCallback(() => {
+		if (!currentVerse) return;
+
+		if (isPlaying) {
+			stopSpeech();
+		} else {
+			// Determine which text to speak based on language
+			let textToSpeak = "";
+			let voiceLang = speechLanguage;
+
+			switch (speechLanguage) {
+				case "hi-IN":
+					// Try Hindi translation first, fallback to transliteration
+					textToSpeak =
+						currentVerse.translations?.find((t) => t.language === "hindi")
+							?.description ||
+						currentVerse.transliteration ||
+						currentVerse.text;
+					break;
+				case "en-US":
+					// English translation
+					textToSpeak =
+						englishTranslations[selectedTranslationIndex]?.description ||
+						currentVerse.text;
+					break;
+				case "hi-IN-sanskrit":
+					// For Sanskrit, use transliteration with Hindi voice for better pronunciation
+					textToSpeak = currentVerse.transliteration || currentVerse.text;
+					voiceLang = "hi-IN"; // Use Hindi voice for Sanskrit transliteration
+					break;
+				default:
+					// Fallback - use transliteration with Hindi voice
+					textToSpeak = currentVerse.transliteration || currentVerse.text;
+					voiceLang = "hi-IN";
+					break;
+			}
+
+			if (textToSpeak) {
+				speakText(textToSpeak, voiceLang);
+			}
+		}
+	}, [
+		currentVerse,
+		isPlaying,
+		speechLanguage,
+		selectedTranslationIndex,
+		englishTranslations,
+		speakText,
+		stopSpeech,
+	]);
 
 	// Memoized verse buttons to prevent re-rendering all buttons on selection
 	const verseButtons = useMemo(() => {
@@ -335,20 +434,47 @@ export function ChapterPage() {
 											<CardTitle className="text-xl">
 												Verse {currentVerse.verse_number}
 											</CardTitle>
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() => setIsPlaying(!isPlaying)}
-												className="flex items-center space-x-2"
-												style={{ contain: "layout style" }}
-											>
-												{isPlaying ? (
-													<Pause className="h-4 w-4" />
-												) : (
-													<Play className="h-4 w-4" />
-												)}
-												<span>{isPlaying ? "Pause" : "Play"}</span>
-											</Button>
+											<div className="flex items-end space-x-3 ">
+												{/* Language Selector for TTS */}
+												<div className="flex flex-col">
+													<span className="text-xs text-slate-600 mb-1">
+														Voice Language
+													</span>
+													<Select
+														value={speechLanguage}
+														onValueChange={setSpeechLanguage}
+													>
+														<SelectTrigger className="w-32 h-8 text-xs">
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															{speechLanguages.map((lang) => (
+																<SelectItem key={lang.value} value={lang.value}>
+																	<span className="flex items-center space-x-1">
+																		<span>{lang.flag}</span>
+																		<span>{lang.label}</span>
+																	</span>
+																</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+												</div>
+												{/* Play/Pause Button */}
+												<Button
+													variant="outline"
+													size="sm"
+													onClick={handlePlayPause}
+													className="flex items-center space-x-2"
+													style={{ contain: "layout style" }}
+												>
+													{isPlaying ? (
+														<Pause className="h-4 w-4" />
+													) : (
+														<Play className="h-4 w-4" />
+													)}
+													<span>{isPlaying ? "Pause" : "Play"}</span>
+												</Button>
+											</div>
 										</div>
 
 										{/* Content Features Notice */}

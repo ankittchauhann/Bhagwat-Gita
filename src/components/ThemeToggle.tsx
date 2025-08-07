@@ -29,7 +29,7 @@ export function ThemeToggle() {
 		<label className="switch">
 			<input
 				type="checkbox"
-				checked={isDark}
+				checked={!isDark}
 				onChange={toggleTheme}
 				aria-label="Toggle dark mode"
 			/>
