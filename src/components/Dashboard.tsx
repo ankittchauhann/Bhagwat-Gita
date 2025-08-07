@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, Heart, Sparkles } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Dashboard() {
 	const navigate = useNavigate();
@@ -18,6 +19,11 @@ export function Dashboard() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950">
+			{/* Theme Toggle - Top Right */}
+			<div className="absolute top-6 right-6 z-10">
+				<ThemeToggle />
+			</div>
+
 			{/* Hero Section */}
 			<div className="container mx-auto px-4 pt-20 pb-16">
 				<div className="text-center space-y-8">
