@@ -55,9 +55,31 @@ export function ChaptersPage() {
 	if (error) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
-				<div className="text-center">
-					<p className="text-red-600 mb-4">Error: {error}</p>
-					<Button onClick={fetchChapters}>Try Again</Button>
+				<div className="text-center max-w-md mx-auto p-6">
+					<div className="text-red-500 text-6xl mb-4">🚫</div>
+					<h2 className="text-xl font-semibold text-slate-800 mb-2">
+						Connection Issue
+					</h2>
+					<p className="text-red-600 mb-6 text-sm">{error}</p>
+					<div className="space-y-3">
+						<Button
+							onClick={fetchChapters}
+							className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+						>
+							🔄 Try Again
+						</Button>
+						<Button
+							variant="outline"
+							onClick={handleBackToDashboard}
+							className="ml-3"
+						>
+							← Back to Dashboard
+						</Button>
+					</div>
+					<div className="mt-4 text-xs text-slate-500">
+						<p>• Check your internet connection</p>
+						<p>• The API server might be temporarily unavailable</p>
+					</div>
 				</div>
 			</div>
 		);
