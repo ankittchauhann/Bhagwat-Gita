@@ -6,10 +6,54 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useGitaStore } from "@/store/gitaStore";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Pause, Play } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+	memo,
+	startTransition,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
+
+// Memoized Verse Button Component for better performance
+const VerseButton = memo(
+	({
+		verseNumber,
+		isSelected,
+		onSelect,
+	}: {
+		verseNumber: number;
+		isSelected: boolean;
+		onSelect: (verse: number) => void;
+	}) => (
+		<Button
+			key={verseNumber}
+			variant={isSelected ? "default" : "ghost"}
+			size="sm"
+			className={`w-full justify-start text-left transform-gpu ${
+				isSelected
+					? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm"
+					: "hover:bg-orange-100 text-slate-700"
+			}`}
+			onClick={() => onSelect(verseNumber)}
+			style={{
+				contain: "layout style paint",
+			}}
+		>
+			<span className="mr-2">श्लोक</span> {verseNumber}
+		</Button>
+	),
+);
 
 export function ChapterPage() {
 	const navigate = useNavigate();
@@ -26,27 +70,78 @@ export function ChapterPage() {
 	const [selectedVerse, setSelectedVerse] = useState<number>(1);
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [selectedTranslationIndex, setSelectedTranslationIndex] = useState(0);
+
+	// Memoized event handlers to prevent unnecessary re-renders
+	const handleBackToChapters = useCallback(() => {
+		navigate({ to: "/chapters" });
+	}, [navigate]);
+
+	const handleVerseSelect = useCallback(
+		(verseNumber: number) => {
+			startTransition(() => {
+				setSelectedVerse(verseNumber);
+			});
+			fetchVerse(chapterId, verseNumber);
+		},
+		[chapterId, fetchVerse],
+	);
+
+	const handlePreviousVerse = useCallback(() => {
+		if (selectedVerse > 1) {
+			startTransition(() => {
+				handleVerseSelect(selectedVerse - 1);
+			});
+		}
+	}, [selectedVerse, handleVerseSelect]);
+
+	const handleNextVerse = useCallback(() => {
+		if (currentChapter && selectedVerse < currentChapter.verses_count) {
+			startTransition(() => {
+				handleVerseSelect(selectedVerse + 1);
+			});
+		}
+	}, [currentChapter, selectedVerse, handleVerseSelect]);
+
+	// Memoized translations to prevent unnecessary recalculations
+	const englishTranslations = useMemo(
+		() =>
+			currentVerse?.translations.filter((t) => t.language === "english") || [],
+		[currentVerse?.translations],
+	);
+
+	const hindiTranslations = useMemo(
+		() =>
+			currentVerse?.translations.filter((t) => t.language === "hindi") || [],
+		[currentVerse?.translations],
+	);
+
+	const currentTranslation = useMemo(
+		() =>
+			englishTranslations[selectedTranslationIndex] || englishTranslations[0],
+		[englishTranslations, selectedTranslationIndex],
+	);
+
+	// Memoized verse buttons to prevent re-rendering all buttons on selection
+	const verseButtons = useMemo(() => {
+		if (!currentChapter) return [];
+
+		return Array.from(
+			{ length: currentChapter.verses_count },
+			(_, i) => i + 1,
+		).map((verseNumber) => (
+			<VerseButton
+				key={verseNumber}
+				verseNumber={verseNumber}
+				isSelected={selectedVerse === verseNumber}
+				onSelect={handleVerseSelect}
+			/>
+		));
+	}, [currentChapter, selectedVerse, handleVerseSelect]);
+
 	useEffect(() => {
 		fetchChapter(chapterId);
 		fetchVerse(chapterId, selectedVerse);
 	}, [chapterId, fetchChapter, fetchVerse, selectedVerse]);
-	const handleBackToChapters = () => {
-		navigate({ to: "/chapters" });
-	};
-	const handleVerseSelect = (verseNumber: number) => {
-		setSelectedVerse(verseNumber);
-		fetchVerse(chapterId, verseNumber);
-	};
-	const handlePreviousVerse = () => {
-		if (selectedVerse > 1) {
-			handleVerseSelect(selectedVerse - 1);
-		}
-	};
-	const handleNextVerse = () => {
-		if (currentChapter && selectedVerse < currentChapter.verses_count) {
-			handleVerseSelect(selectedVerse + 1);
-		}
-	};
 	// Debug: Log the current verse data to see what we have
 	useEffect(() => {
 		if (currentVerse) {
@@ -125,12 +220,7 @@ export function ChapterPage() {
 			</div>
 		);
 	}
-	const englishTranslations =
-		currentVerse?.translations.filter((t) => t.language === "english") || [];
-	const hindiTranslations =
-		currentVerse?.translations.filter((t) => t.language === "hindi") || [];
-	const currentTranslation =
-		englishTranslations[selectedTranslationIndex] || englishTranslations[0];
+
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950">
 			{/* Fixed Background Layer */}
@@ -179,7 +269,10 @@ export function ChapterPage() {
 					{/* Sidebar - Verses List */}{" "}
 					<div className="lg:col-span-1">
 						{" "}
-						<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto">
+						<Card
+							className="bg-white/70 backdrop-blur-sm border-0 shadow-lg sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto transform-gpu will-change-scroll"
+							style={{ contain: "layout style paint" }}
+						>
 							{" "}
 							<CardHeader>
 								{" "}
@@ -190,37 +283,25 @@ export function ChapterPage() {
 								</CardDescription>{" "}
 							</CardHeader>{" "}
 							<CardContent>
-								{" "}
-								<div className="space-y-2">
-									{" "}
-									{Array.from(
-										{ length: currentChapter.verses_count },
-										(_, i) => i + 1,
-									).map((verseNumber) => (
-										<Button
-											key={verseNumber}
-											variant={
-												selectedVerse === verseNumber ? "default" : "ghost"
-											}
-											size="sm"
-											className={`w-full justify-start text-left ${selectedVerse === verseNumber ? "bg-gradient-to-r from-orange-500 to-red-500" : "hover:bg-orange-100"}`}
-											onClick={() => handleVerseSelect(verseNumber)}
-										>
-											{" "}
-											<span className="mr-2">श्लोक</span> {verseNumber}{" "}
-										</Button>
-									))}{" "}
-								</div>{" "}
+								<div className="space-y-2" style={{ contain: "layout" }}>
+									{verseButtons}
+								</div>
 							</CardContent>{" "}
 						</Card>{" "}
 					</div>{" "}
 					{/* Main Content - Verse Display */}{" "}
 					<div className="lg:col-span-3">
 						{" "}
-						<div className="space-y-6">
+						<div
+							className="space-y-6 transform-gpu will-change-scroll"
+							style={{ contain: "layout style" }}
+						>
 							{" "}
 							{/* Chapter Summary */}{" "}
-							<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+							<Card
+								className="bg-white/70 backdrop-blur-sm border-0 shadow-lg"
+								style={{ contain: "layout style paint" }}
+							>
 								{" "}
 								<CardHeader>
 									{" "}
@@ -244,7 +325,10 @@ export function ChapterPage() {
 							</Card>{" "}
 							{/* Current Verse Display */}{" "}
 							{currentVerse && (
-								<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+								<Card
+									className="bg-white/70 backdrop-blur-sm border-0 shadow-lg"
+									style={{ contain: "layout style paint" }}
+								>
 									{" "}
 									<CardHeader>
 										<div className="flex items-center justify-between">
@@ -256,6 +340,7 @@ export function ChapterPage() {
 												size="sm"
 												onClick={() => setIsPlaying(!isPlaying)}
 												className="flex items-center space-x-2"
+												style={{ contain: "layout style" }}
 											>
 												{isPlaying ? (
 													<Pause className="h-4 w-4" />
@@ -303,7 +388,7 @@ export function ChapterPage() {
 										</div>
 									</CardHeader>
 									<CardContent className="space-y-6">
-										{/* Sanskrit Text */}
+										{/* Sanskrit Text - No lazy loading for critical content */}
 										<div className="p-6 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900 dark:to-yellow-900 rounded-lg">
 											<h3 className="text-lg font-semibold mb-3 text-orange-800 dark:text-orange-200">
 												Sanskrit (संस्कृत)
@@ -312,7 +397,7 @@ export function ChapterPage() {
 												{currentVerse.text}
 											</p>
 										</div>
-										{/* Transliteration */}
+										{/* Transliteration - No lazy loading for critical content */}
 										{currentVerse.transliteration && (
 											<div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900 dark:to-orange-900 rounded-lg">
 												<h3 className="text-lg font-semibold mb-3 text-amber-800 dark:text-amber-200">
@@ -326,7 +411,7 @@ export function ChapterPage() {
 												</p>
 											</div>
 										)}
-										{/* Word Meanings */}
+										{/* Word Meanings - No lazy loading for critical content */}
 										<div className="p-6 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900 dark:to-cyan-900 rounded-lg border border-teal-200">
 											<h3 className="text-lg font-semibold mb-3 text-teal-800 dark:text-teal-200 flex items-center gap-2">
 												<span>📖</span> Word Meanings (पदार्थ)
@@ -359,23 +444,28 @@ export function ChapterPage() {
 														English Translation{" "}
 													</h3>{" "}
 													{englishTranslations.length > 1 && (
-														<select
-															className="text-sm bg-white border rounded px-2 py-1"
-															value={selectedTranslationIndex}
-															onChange={(e) =>
-																setSelectedTranslationIndex(
-																	Number(e.target.value),
-																)
+														<Select
+															value={selectedTranslationIndex.toString()}
+															onValueChange={(value) =>
+																setSelectedTranslationIndex(Number(value))
 															}
 														>
-															{" "}
-															{englishTranslations.map((translation, index) => (
-																<option key={translation.id} value={index}>
-																	{" "}
-																	{translation.author_name}{" "}
-																</option>
-															))}{" "}
-														</select>
+															<SelectTrigger className="w-48 text-sm">
+																<SelectValue placeholder="Select translator" />
+															</SelectTrigger>
+															<SelectContent className="bg-white dark:bg-slate-950 text-black dark:text-white">
+																{englishTranslations.map(
+																	(translation, index) => (
+																		<SelectItem
+																			key={translation.id}
+																			value={index.toString()}
+																		>
+																			{translation.author_name}
+																		</SelectItem>
+																	),
+																)}
+															</SelectContent>
+														</Select>
 													)}{" "}
 												</div>{" "}
 												<p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
@@ -411,7 +501,7 @@ export function ChapterPage() {
 												))}{" "}
 											</div>
 										)}{" "}
-										{/* Commentaries */}{" "}
+										{/* Commentaries - Keep lazy loading only for this heavy section */}
 										{currentVerse.commentaries &&
 											currentVerse.commentaries.length > 0 && (
 												<div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900 dark:to-pink-900 rounded-lg">
