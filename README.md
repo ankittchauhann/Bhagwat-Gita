@@ -2,35 +2,79 @@
 
 A beautiful, interactive web application for reading and studying the Bhagavad Gita, built with React, TypeScript, and modern web technologies.
 
-## Features ✨
+## ✨ Features
 
-- **Beautiful Dashboard**: Welcome page with "Namaste" greeting to start your spiritual journey
-- **All 18 Chapters**: Browse through all chapters with beautiful overview cards
-- **Chapter Details**: Detailed view of each chapter with:
-  - Sanskrit verses (श्लोक)
+### 🏛️ **Dashboard Experience**
+
+- Beautiful Sanskrit welcome page with spiritual design
+- Gradient backgrounds inspired by traditional Indian art
+- "Namaste" greeting to begin your spiritual journey
+- Feature showcase cards highlighting app capabilities
+- Sacred verse quotes with translations
+
+### 📖 **Chapter Navigation**
+
+- Browse all 18 chapters with beautiful overview cards
+- Real-time search functionality across chapters
+- Chapter cards display:
+  - Sanskrit names with proper Devanagari fonts
   - Transliteration in Roman script
-  - English translations
-  - Chapter summaries
-- **Verse Navigation**: Sidebar with all verses for easy navigation
-- **Bilingual Content**: Both Hindi (Sanskrit) and English text
-- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
-- **Modern UI**: Built with ShadCN components and Tailwind CSS
-- **State Management**: Powered by Zustand for efficient state management
+  - English translations and meanings
+  - Verse counts and detailed summaries
+- Live API integration for chapter data
 
-## Tech Stack 🛠️
+### 🎯 **Chapter Detail View**
 
-- **Frontend**: React 19, TypeScript
-- **Routing**: TanStack Router
-- **Styling**: Tailwind CSS, ShadCN UI Components
-- **State Management**: Zustand
-- **Build Tool**: Vite
-- **Package Manager**: Bun
-- **Icons**: Lucide React
-- **Linting**: Biome
+- Individual chapter pages with complete information
+- Sticky navigation header with chapter details
+- Sidebar with all verses for quick navigation
+- Main content area featuring:
+  - Chapter summary with spiritual context
+  - Sanskrit verses with authentic Devanagari typography
+  - Roman transliteration for pronunciation
+  - English translations with commentary
+  - Audio playback controls (UI ready)
+  - Previous/Next verse navigation
 
-## API Integration 🔌
+### 🎨 **Design & User Experience**
 
-The app uses the Bhagavad Gita API from RapidAPI:
+- **Responsive Design**: Perfect on desktop, tablet, and mobile
+- **Spiritual Aesthetics**: Warm oranges, reds, and golds
+- **Typography**: Special Sanskrit fonts (Noto Sans Devanagari, Mangal)
+- **Modern UI**: ShadCN components with glass morphism effects
+- **Smooth Transitions**: Elegant animations and hover effects
+- **Accessibility**: Proper contrast ratios and keyboard navigation
+
+## 🛠️ Tech Stack
+
+### **Frontend**
+
+- **React 19** with **TypeScript** for type safety
+- **TanStack Router** for file-based routing
+- **Zustand** for lightweight state management
+- **Vite** for lightning-fast development and building
+
+### **UI & Styling**
+
+- **Tailwind CSS 4.0** for utility-first styling
+- **ShadCN UI Components** for consistent design system
+- **Lucide React** for beautiful icons
+- **Custom CSS** for Sanskrit fonts and spiritual aesthetics
+
+### **Development Tools**
+
+- **Bun** as package manager for speed
+- **Biome** for linting and formatting
+- **TypeScript** for robust type checking
+- **Hot Module Replacement** for instant development feedback
+
+## 🔌 API Integration
+
+The app integrates with the Bhagavad Gita API from RapidAPI for authentic spiritual content.
+
+### **Current API Endpoints**
+
+#### 1. Get All Chapters
 
 ```bash
 curl --request GET \
@@ -39,19 +83,35 @@ curl --request GET \
   --header 'x-rapidapi-key: YOUR_API_KEY'
 ```
 
-### Available Endpoints
+#### 2. Get Specific Chapter
 
-- `/chapters` - Get all 18 chapters
-- `/chapters/{id}` - Get specific chapter details
-- `/chapters/{id}/verses` - Get all verses of a chapter
-- `/chapters/{chapter}/verses/{verse}` - Get specific verse
+```bash
+curl --request GET \
+  --url 'https://bhagavad-gita3.p.rapidapi.com/v2/chapters/1/' \
+  --header 'x-rapidapi-host: bhagavad-gita3.p.rapidapi.com' \
+  --header 'x-rapidapi-key: YOUR_API_KEY'
+```
 
-## Getting Started 🚀
+### **Prepared for Future APIs**
+
+- ✅ `/chapters/{id}/verses` - Get all verses of a chapter
+- ✅ `/chapters/{chapter}/verses/{verse}` - Get specific verse
+- ✅ Store structure ready for real verse data
+- ✅ Loading and error states implemented
+
+## 🚀 Getting Started
+
+### **Prerequisites**
+
+- Node.js 18+ or Bun runtime
+- Modern web browser
+
+### **Installation**
 
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ankittchauhann/Bhagwat-Gita.git
    cd Bhagwat-Gita
    ```
 
@@ -61,9 +121,13 @@ curl --request GET \
    bun install
    ```
 
-3. **Update API Key**
+3. **Configure API Key**
    - Open `src/store/gitaStore.ts`
-   - Replace the API_KEY with your RapidAPI key
+   - Replace `API_KEY` with your RapidAPI key
+
+   ```typescript
+   const API_KEY = "your-rapidapi-key-here"
+   ```
 
 4. **Start development server**
 
@@ -71,132 +135,201 @@ curl --request GET \
    bun run dev
    ```
 
+   The app will be available at `http://localhost:3000` (or next available port)
+
 5. **Build for production**
 
+   ```bash
+   bun run build
+   ```
+
+6. **Preview production build**
+
+   ```bash
+   bun run serve
+   ```
+
+## 📁 Project Structure
+
+```
+src/
+├── components/
+│   ├── ui/                    # ShadCN UI components
+│   │   ├── button.tsx         # Reusable button component
+│   │   ├── card.tsx           # Card components for content
+│   │   └── input.tsx          # Input components
+│   ├── Dashboard.tsx          # Beautiful home page
+│   ├── ChaptersPage.tsx       # All chapters view with search
+│   └── ChapterPage.tsx        # Individual chapter with verses
+├── store/
+│   └── gitaStore.ts           # Zustand state management
+├── lib/
+│   └── utils.ts               # Utility functions (cn helper)
+├── routes/                    # TanStack Router file-based routing
+│   ├── __root.tsx             # Root layout component
+│   ├── index.tsx              # Dashboard route (/)
+│   ├── chapters.tsx           # Chapters listing (/chapters)
+│   └── chapter.$chapterId.tsx # Dynamic chapter route
+└── styles.css                # Global styles with Sanskrit fonts
+```
+
+## 🧭 Navigation Flow
+
+```
+Dashboard (/) 
+    ↓ "Namaste" button
+Chapters Page (/chapters)
+    ↓ Click any chapter
+Chapter Detail (/chapter/{id})
+    ↓ Browse verses in sidebar
+Individual Verses (with API integration ready)
+```
+
+## 📊 State Management
+
+The app uses Zustand for efficient state management:
+
+```typescript
+interface GitaState {
+  // Data
+  chapters: Chapter[]
+  currentChapter: Chapter | null
+  verses: Verse[]
+  currentVerse: Verse | null
+  
+  // UI State
+  loading: boolean
+  error: string | null
+  
+  // API Actions
+  fetchChapters: () => Promise<void>
+  fetchChapter: (id: number) => Promise<void>
+  fetchVerses: (chapterId: number) => Promise<void>
+  fetchVerse: (chapterId: number, verse: number) => Promise<void>
+}
+```
+
+## 🎨 Design Philosophy
+
+### **Color Palette**
+
+- **Primary**: Warm oranges (`#ea580c`, `#f97316`)
+- **Secondary**: Deep reds (`#dc2626`, `#ef4444`)
+- **Accent**: Golden yellows (`#eab308`, `#f59e0b`)
+- **Neutral**: Sophisticated grays (`#64748b`, `#475569`)
+
+### **Typography**
+
+- **Sanskrit**: Noto Sans Devanagari, Mangal, Kokila
+- **English**: Inter, system fonts for readability
+- **Hierarchy**: Clear font sizes and weights for content scanning
+
+### **Visual Elements**
+
+- **Gradients**: Subtle transitions for depth
+- **Shadows**: Soft elevations for modern feel
+- **Border Radius**: Consistent rounded corners
+- **Spacing**: Harmonious padding and margins
+
+## 🔧 Available Scripts
+
 ```bash
-bunx --bun run build
+# Development
+bun run dev          # Start dev server with hot reload
+bun run build        # Build for production
+bun run serve        # Preview production build
+
+# Code Quality  
+bun run lint         # Run Biome linter
+bun run format       # Format code with Biome
+bun run check        # Run both lint and format
+
+# Testing (when implemented)
+bun run test         # Run test suite
 ```
 
-## Testing
+## 🚧 Roadmap & Future Enhancements
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+### **Phase 1: Core Features** ✅
 
-```bash
-bunx --bun run test
-```
+- [x] Beautiful dashboard with spiritual design
+- [x] All chapters API integration
+- [x] Individual chapter API integration
+- [x] Search functionality
+- [x] Responsive design
+- [x] Sanskrit font support
 
-## Styling
+### **Phase 2: Verses Integration** (Ready for APIs)
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+- [ ] All verses API integration
+- [ ] Individual verse API integration  
+- [ ] Word-by-word meanings
+- [ ] Commentary from different authors
 
-## Linting & Formatting
+### **Phase 3: Enhanced Experience**
 
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
+- [ ] Audio playback for Sanskrit recitation
+- [ ] Bookmarking favorite verses
+- [ ] Daily verse notifications
+- [ ] Dark mode support
+- [ ] Offline support with service workers
 
-```bash
-bunx --bun run lint
-bunx --bun run format
-bunx --bun run check
-```
+### **Phase 4: Advanced Features**
 
-## Routing
+- [ ] Multi-language support (Hindi, Telugu, Tamil)
+- [ ] Verse-by-verse search
+- [ ] Commentary comparison
+- [ ] Reading progress tracking
+- [ ] Social sharing capabilities
 
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+## 🤝 Contributing
 
-### Adding A Route
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+### **Development Guidelines**
 
-TanStack will automatically generate the content of the route file for you.
+- Follow TypeScript best practices
+- Use Biome for consistent formatting
+- Write meaningful commit messages
+- Test your changes across different screen sizes
+- Ensure accessibility standards are met
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+## 📄 License
 
-### Adding Links
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+## 🙏 Acknowledgments
 
-```tsx
-import { Link } from "@tanstack/react-router";
-```
+- **Bhagavad Gita API** by RapidAPI for authentic content
+- **ShadCN** for beautiful, accessible UI components
+- **Tailwind CSS** for utility-first styling approach
+- **TanStack Router** for excellent routing solution
+- **The timeless wisdom of the Bhagavad Gita** for spiritual guidance
 
-Then anywhere in your JSX you can use it like so:
+---
 
-```tsx
-<Link to="/about">About</Link>
-```
+## 🕉️ About the Bhagavad Gita
 
-This will create a link that will navigate to the `/about` route.
+The Bhagavad Gita is a 700-verse Sanskrit scripture that is part of the ancient Indian epic Mahabharata. It is a conversation between Prince Arjuna and Lord Krishna, who serves as his charioteer, at the start of the Kurukshetra War.
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
+**Core Themes:**
 
-### Using A Layout
+- **Dharma** (righteous duty)
+- **Karma** (action and consequences)  
+- **Moksha** (liberation/salvation)
+- **Bhakti** (devotion)
 
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
+This app aims to make these timeless teachings accessible to modern readers while preserving the spiritual essence and authenticity of the original text.
 
-Here is an example layout that includes a header:
+---
 
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+**श्रीमद्भगवद्गीता किजय हो** - "Victory to the Divine Song"
 
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
+*May this app illuminate your path to spiritual wisdom* 🙏✨
 
 First add your dependencies:
 

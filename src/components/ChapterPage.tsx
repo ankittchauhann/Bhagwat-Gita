@@ -43,16 +43,13 @@ export function ChapterPage() {
 	const navigate = useNavigate();
 	const params = useParams({ from: "/chapter/$chapterId" });
 	const chapterId = Number.parseInt(params.chapterId);
-	const { chapters, currentChapter, setCurrentChapter } = useGitaStore();
+	const { currentChapter, loading, error, fetchChapter } = useGitaStore();
 	const [selectedVerse, setSelectedVerse] = useState<number>(1);
 	const [isPlaying, setIsPlaying] = useState(false);
 
 	useEffect(() => {
-		const chapter = chapters.find((ch) => ch.id === chapterId);
-		if (chapter) {
-			setCurrentChapter(chapter);
-		}
-	}, [chapterId, chapters, setCurrentChapter]);
+		fetchChapter(chapterId);
+	}, [chapterId, fetchChapter]);
 
 	const handleBackToChapters = () => {
 		navigate({ to: "/chapters" });
@@ -61,12 +58,36 @@ export function ChapterPage() {
 	const currentVerse =
 		mockVerses.find((v) => v.verse_number === selectedVerse) || mockVerses[0];
 
-	if (!currentChapter) {
+	if (loading) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
 				<div className="text-center">
 					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto" />
 					<p className="mt-4 text-slate-600">Loading chapter...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
+				<div className="text-center">
+					<p className="text-red-600 mb-4">Error: {error}</p>
+					<Button onClick={() => fetchChapter(chapterId)}>Try Again</Button>
+				</div>
+			</div>
+		);
+	}
+
+	if (!currentChapter) {
+		return (
+			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
+				<div className="text-center">
+					<p className="text-slate-600">Chapter not found</p>
+					<Button onClick={handleBackToChapters} className="mt-4">
+						Back to Chapters
+					</Button>
 				</div>
 			</div>
 		);
