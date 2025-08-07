@@ -1,9 +1,4 @@
 {
   "buildCommand": "bun run build",
-  "installCommand": "bun install",
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@18.x"
-    }
-  }
+  "installCommand": "bun install"
 }
