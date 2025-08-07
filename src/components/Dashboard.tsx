@@ -214,6 +214,27 @@ export function Dashboard() {
 					</CardContent>
 				</Card>
 			</div>
+
+			{/* Footer */}
+			<footer className="border-t border-orange-200 dark:border-orange-800 bg-gradient-to-r from-orange-50/50 to-red-50/50 dark:from-orange-950/50 dark:to-red-950/50 backdrop-blur-sm">
+				<div className="container mx-auto px-4 py-8">
+					<div className="text-center space-y-4">
+						<div className="flex justify-center items-center space-x-2">
+							<span className="text-orange-600 dark:text-orange-400">॥</span>
+							<span className="text-slate-600 dark:text-slate-400 text-sm">
+								Made with ❤️, devotion and AI by
+							</span>
+							<span className="font-semibold text-orange-700 dark:text-orange-300">
+								Ankit
+							</span>
+							<span className="text-orange-600 dark:text-orange-400">॥</span>
+						</div>
+						<p className="text-xs text-slate-500 dark:text-slate-500">
+							"योगस्थः कुरु कर्माणि" - Perform your duty with equanimity
+						</p>
+					</div>
+				</div>
+			</footer>
 		</div>
 	);
 }
