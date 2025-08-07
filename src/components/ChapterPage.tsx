@@ -40,7 +40,7 @@ const VerseButton = memo(
 			key={verseNumber}
 			variant={isSelected ? "default" : "ghost"}
 			size="sm"
-			className={`w-full justify-start text-left transform-gpu ${
+			className={`w-full justify-start text-left transform-gpu cursor-pointer ${
 				isSelected
 					? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm"
 					: "hover:bg-orange-100 text-slate-700"
@@ -336,7 +336,7 @@ export function ChapterPage() {
 							<Button
 								variant="ghost"
 								onClick={handleBackToChapters}
-								className="hover:bg-orange-100"
+								className="hover:bg-orange-100 cursor-pointer"
 							>
 								{" "}
 								<ArrowLeft className="h-4 w-4 mr-2" /> Back{" "}
@@ -444,12 +444,16 @@ export function ChapterPage() {
 														value={speechLanguage}
 														onValueChange={setSpeechLanguage}
 													>
-														<SelectTrigger className="w-32 h-8 text-xs">
+														<SelectTrigger className="w-32 h-8 text-xs cursor-pointer">
 															<SelectValue />
 														</SelectTrigger>
 														<SelectContent>
 															{speechLanguages.map((lang) => (
-																<SelectItem key={lang.value} value={lang.value}>
+																<SelectItem
+																	key={lang.value}
+																	value={lang.value}
+																	className="cursor-pointer"
+																>
 																	<span className="flex items-center space-x-1">
 																		<span>{lang.flag}</span>
 																		<span>{lang.label}</span>
@@ -464,7 +468,7 @@ export function ChapterPage() {
 													variant="outline"
 													size="sm"
 													onClick={handlePlayPause}
-													className="flex items-center space-x-2"
+													className="flex items-center space-x-2 cursor-pointer"
 													style={{ contain: "layout style" }}
 												>
 													{isPlaying ? (
@@ -576,7 +580,7 @@ export function ChapterPage() {
 																setSelectedTranslationIndex(Number(value))
 															}
 														>
-															<SelectTrigger className="w-48 text-sm">
+															<SelectTrigger className="w-48 text-sm cursor-pointer">
 																<SelectValue placeholder="Select translator" />
 															</SelectTrigger>
 															<SelectContent className="bg-white dark:bg-slate-950 text-black dark:text-white">
@@ -585,6 +589,7 @@ export function ChapterPage() {
 																		<SelectItem
 																			key={translation.id}
 																			value={index.toString()}
+																			className="cursor-pointer "
 																		>
 																			{translation.author_name}
 																		</SelectItem>
@@ -666,6 +671,7 @@ export function ChapterPage() {
 												variant="outline"
 												onClick={handlePreviousVerse}
 												disabled={selectedVerse === 1}
+												className="cursor-pointer"
 											>
 												{" "}
 												← Previous Verse{" "}
@@ -678,6 +684,7 @@ export function ChapterPage() {
 												variant="outline"
 												onClick={handleNextVerse}
 												disabled={selectedVerse === currentChapter.verses_count}
+												className="cursor-pointer"
 											>
 												Next Verse →
 											</Button>

@@ -128,9 +128,9 @@ export function Dashboard() {
 						<Button
 							onClick={handleNamasteClick}
 							size="lg"
-							className="text-xl px-12 py-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+							className="text-xl px-12 py-6 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
 						>
-							<Heart className="mr-3 h-6 w-6" />🙏 Namaste
+							🙏 Namaste
 						</Button>
 					</div>
 				</div>

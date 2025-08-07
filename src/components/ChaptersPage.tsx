@@ -95,7 +95,7 @@ export function ChaptersPage() {
 							<Button
 								variant="ghost"
 								onClick={handleBackToDashboard}
-								className="hover:bg-orange-100"
+								className="hover:bg-orange-100 cursor-pointer"
 							>
 								<ArrowLeft className="h-4 w-4 mr-2" />
 								Back
@@ -163,7 +163,7 @@ export function ChaptersPage() {
 									<Button
 										variant="ghost"
 										size="sm"
-										className="w-full justify-center hover:bg-orange-100 text-orange-700"
+										className="w-full justify-center hover:bg-orange-100 text-orange-700 cursor-pointer"
 									>
 										Read Chapter →
 									</Button>
