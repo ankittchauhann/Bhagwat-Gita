@@ -8,10 +8,85 @@ import {
 } from "@/components/ui/card";
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, Heart, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
+
+// Collection of inspiring verses from Bhagavad Gita
+const inspirationalVerses = [
+	{
+		sanskrit:
+			"यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥",
+		english:
+			"Whenever there is a decline in righteousness and an increase in unrighteousness, at that time I manifest myself on earth.",
+		chapter: 4,
+		verse: 7,
+	},
+	{
+		sanskrit: "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन।\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+		english:
+			"You have a right to perform your prescribed duty, but not to the fruits of action. Never consider yourself the cause of the results, nor be attached to not doing your duty.",
+		chapter: 2,
+		verse: 47,
+	},
+	{
+		sanskrit:
+			"योगस्थः कुरु कर्माणि सङ्गं त्यक्त्वा धनञ्जय।\nसिद्ध्यसिद्ध्योः समो भूत्वा समत्वं योग उच्यते॥",
+		english:
+			"Perform your duty equipoised, abandoning all attachment to success or failure. Such equanimity is called yoga.",
+		chapter: 2,
+		verse: 48,
+	},
+	{
+		sanskrit:
+			"श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात्।\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः॥",
+		english:
+			"It is better to engage in one's own occupation, even though one may perform it imperfectly, than to accept another's occupation and perform it perfectly.",
+		chapter: 3,
+		verse: 35,
+	},
+	{
+		sanskrit:
+			"मन्मना भव मद्भक्तो मद्याजी मां नमस्कुरु।\nमामेवैष्यसि सत्यं ते प्रतिजाने प्रियोऽसि मे॥",
+		english:
+			"Always think of Me, become My devotee, worship Me and offer your homage unto Me. Thus you will come to Me without fail. I promise you this because you are My very dear friend.",
+		chapter: 18,
+		verse: 65,
+	},
+	{
+		sanskrit:
+			"सर्वधर्मान्परित्यज्य मामेकं शरणं व्रज।\nअहं त्वां सर्वपापेभ्यो मोक्षयिष्यामि मा शुचः॥",
+		english:
+			"Abandon all varieties of religion and just surrender unto Me. I shall deliver you from all sinful reactions. Do not fear.",
+		chapter: 18,
+		verse: 66,
+	},
+	{
+		sanskrit:
+			"यत्करोषि यदश्नासि यज्जुहोषि ददासि यत्।\nयत्तपस्यसि कौन्तेय तत्कुरुष्व मदर्पणम्॥",
+		english:
+			"Whatever you do, whatever you eat, whatever you offer or give away, whatever austerities you practice—do that as an offering to Me.",
+		chapter: 9,
+		verse: 27,
+	},
+	{
+		sanskrit:
+			"अनन्याश्चिन्तयन्तो मां ये जनाः पर्युपासते।\nतेषां नित्याभियुक्तानां योगक्षेमं वहाम्यहम्॥",
+		english:
+			"To those who are constantly devoted and who always remember Me with love, I give the understanding by which they can come to Me.",
+		chapter: 9,
+		verse: 22,
+	},
+];
 
 export function Dashboard() {
 	const navigate = useNavigate();
+	const [currentVerse, setCurrentVerse] = useState(inspirationalVerses[0]);
+
+	// Randomize verse on component mount
+	useEffect(() => {
+		const randomIndex = Math.floor(Math.random() * inspirationalVerses.length);
+		setCurrentVerse(inspirationalVerses[randomIndex]);
+	}, []);
 
 	const handleNamasteClick = () => {
 		navigate({ to: "/chapters" });
@@ -125,17 +200,15 @@ export function Dashboard() {
 				<Card className="max-w-4xl mx-auto bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900 dark:to-red-900 border-0 shadow-lg">
 					<CardContent className="text-center py-12">
 						<blockquote className="space-y-4">
-							<p className="text-2xl md:text-3xl font-serif text-slate-700 dark:text-slate-300 italic">
-								"यदा यदा हि धर्मस्य ग्लानिर्भवति भारत।
-								<br />
-								अभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम्॥"
+							<p className="text-2xl md:text-3xl font-serif text-slate-700 dark:text-slate-300 italic whitespace-pre-line">
+								"{currentVerse.sanskrit}"
 							</p>
 							<p className="text-lg text-slate-600 dark:text-slate-400">
-								"Whenever there is a decline in righteousness and an increase in
-								unrighteousness, at that time I manifest myself on earth."
+								"{currentVerse.english}"
 							</p>
 							<footer className="text-sm text-slate-500 dark:text-slate-500">
-								— Bhagavad Gita, Chapter 4, Verse 7
+								— Bhagavad Gita, Chapter {currentVerse.chapter}, Verse{" "}
+								{currentVerse.verse}
 							</footer>
 						</blockquote>
 					</CardContent>

@@ -615,7 +615,7 @@ export function ChapterPage() {
 												{hindiTranslations.map((translation) => (
 													<div key={translation.id} className="mb-4 last:mb-0">
 														{" "}
-														<p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line">
+														<p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300">
 															{" "}
 															{translation.description}{" "}
 														</p>{" "}
