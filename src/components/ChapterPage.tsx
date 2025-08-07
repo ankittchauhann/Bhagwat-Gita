@@ -257,12 +257,16 @@ export function ChapterPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 flex items-center justify-center">
+			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 w-full overflow-x-hidden">
 				{/* Fixed Background Layer */}
 				<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto" />
-					<p className="mt-4 text-slate-600">Loading chapter...</p>
+				<div className="w-full max-w-7xl mx-auto px-4 py-8">
+					<div className="flex items-center justify-center min-h-[50vh]">
+						<div className="text-center">
+							<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto" />
+							<p className="mt-4 text-slate-600">Loading chapter...</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		);
@@ -321,75 +325,134 @@ export function ChapterPage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950">
+		<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 w-full overflow-scroll">
 			{/* Fixed Background Layer */}
 			<div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-orange-950 dark:via-yellow-950 dark:to-red-950 -z-10" />
 			{/* Header */}
-			<div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-orange-200 z-10">
-				{" "}
-				<div className="container mx-auto px-4 py-4">
-					{" "}
-					<div className="flex items-center justify-between">
-						{" "}
-						<div className="flex items-center space-x-4">
-							{" "}
+			<div className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-orange-200 z-50 w-full">
+				<div className="w-full max-w-7xl mx-auto px-4 py-3 md:py-4">
+					{/* Desktop Layout */}
+					<div className="hidden md:flex items-center justify-between">
+						<div className="flex items-center space-x-4 min-w-0">
 							<Button
 								variant="ghost"
 								onClick={handleBackToChapters}
-								className="hover:bg-orange-100 cursor-pointer"
+								className="hover:bg-orange-100 cursor-pointer flex-shrink-0"
 							>
-								{" "}
-								<ArrowLeft className="h-4 w-4 mr-2" /> Back{" "}
-							</Button>{" "}
-							<div>
-								{" "}
+								<ArrowLeft className="h-4 w-4 mr-2" />
+								Back
+							</Button>
+							<div className="min-w-0">
 								<h1 className="text-2xl font-bold text-slate-800">
-									{" "}
 									Chapter {currentChapter.chapter_number}:{" "}
-									{currentChapter.name_meaning}{" "}
-								</h1>{" "}
+									{currentChapter.name_meaning}
+								</h1>
 								<p className="text-sm text-slate-600">
 									{currentChapter.name_transliterated}
-								</p>{" "}
-							</div>{" "}
-						</div>{" "}
-						<div className="flex items-center space-x-2 text-sm text-slate-500">
-							{" "}
-							<BookOpen className="h-4 w-4" />{" "}
-							<span>{currentChapter.verses_count} verses</span>{" "}
-						</div>{" "}
-					</div>{" "}
-				</div>{" "}
-			</div>{" "}
-			<div className="container mx-auto px-4 py-6">
-				{" "}
+								</p>
+							</div>
+						</div>
+						<div className="flex items-center space-x-2 text-sm text-slate-500 flex-shrink-0">
+							<BookOpen className="h-4 w-4" />
+							<span>{currentChapter.verses_count} verses</span>
+						</div>
+					</div>
+
+					{/* Mobile Layout */}
+					<div className="md:hidden space-y-3">
+						{/* Top Row: Back Button + Chapter Number */}
+						<div className="flex items-center justify-between min-w-0">
+							<div className="flex items-center space-x-3 min-w-0 flex-1">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={handleBackToChapters}
+									className="hover:bg-orange-100 cursor-pointer flex-shrink-0"
+								>
+									<ArrowLeft className="h-4 w-4 mr-1" />
+									<span className="text-sm">Back</span>
+								</Button>
+								<div className="text-lg font-bold text-slate-800 truncate">
+									Chapter {currentChapter.chapter_number}
+								</div>
+							</div>
+							<div className="flex items-center space-x-1 text-xs text-slate-500 flex-shrink-0">
+								<BookOpen className="h-3 w-3" />
+								<span>{currentChapter.verses_count}</span>
+							</div>
+						</div>
+
+						{/* Title Section */}
+						<div className="space-y-1 min-w-0">
+							<h1 className="text-base font-bold text-slate-800 leading-tight break-words">
+								{currentChapter.name_meaning}
+							</h1>
+							<p className="text-xs text-slate-600 truncate">
+								{currentChapter.name_transliterated}
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div className="w-full max-w-7xl mx-auto px-4 py-6 pt-24">
 				<div className="grid lg:grid-cols-4 gap-6">
-					{" "}
-					{/* Sidebar - Verses List */}{" "}
-					<div className="lg:col-span-1">
-						{" "}
+					{/* Sidebar - Verses List (Desktop) */}
+					<div className="hidden lg:block lg:col-span-1">
 						<Card
 							className="bg-white/70 backdrop-blur-sm border-0 shadow-lg sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto transform-gpu will-change-scroll"
 							style={{ contain: "layout style paint" }}
 						>
-							{" "}
 							<CardHeader>
-								{" "}
-								<CardTitle className="text-lg">All Verses</CardTitle>{" "}
+								<CardTitle className="text-lg">All Verses</CardTitle>
 								<CardDescription>
-									{" "}
-									श्लोक सूची - {currentChapter.verses_count} total{" "}
-								</CardDescription>{" "}
-							</CardHeader>{" "}
+									श्लोक सूची - {currentChapter.verses_count} total
+								</CardDescription>
+							</CardHeader>
 							<CardContent>
 								<div className="space-y-2" style={{ contain: "layout" }}>
 									{verseButtons}
 								</div>
-							</CardContent>{" "}
-						</Card>{" "}
-					</div>{" "}
-					{/* Main Content - Verse Display */}{" "}
-					<div className="lg:col-span-3">
+							</CardContent>
+						</Card>
+					</div>
+					{/* Verse Dropdown (Mobile) */}
+					<div className="lg:hidden w-full max-w-7xl mx-auto px-4  pt-12">
+						<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+							<CardContent className="pt-6">
+								<div className="space-y-2">
+									<div className="text-sm font-medium text-slate-700">
+										Select Verse (श्लोक चुनें)
+									</div>
+									<Select
+										value={selectedVerse.toString()}
+										onValueChange={(value) =>
+											setSelectedVerse(Number.parseInt(value))
+										}
+									>
+										<SelectTrigger className="w-full">
+											<SelectValue placeholder="Choose a verse..." />
+										</SelectTrigger>
+										<SelectContent className="max-h-60 w-full">
+											{Array.from(
+												{ length: currentChapter.verses_count },
+												(_, i) => i + 1,
+											).map((verseNumber) => (
+												<SelectItem
+													key={verseNumber}
+													value={verseNumber.toString()}
+												>
+													श्लोक {verseNumber}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</CardContent>
+						</Card>
+					</div>
+
+					{/* Main Content - Verse Display */}
+					<div className="lg:col-span-3 w-full min-w-0">
 						{" "}
 						<div
 							className="space-y-6 transform-gpu will-change-scroll"
@@ -430,11 +493,14 @@ export function ChapterPage() {
 								>
 									{" "}
 									<CardHeader>
-										<div className="flex items-center justify-between">
-											<CardTitle className="text-xl">
+										<div className="flex flex-col space-y-4 ">
+											{/* Verse Title */}
+											<CardTitle className="text-xl justify-center">
 												Verse {currentVerse.verse_number}
 											</CardTitle>
-											<div className="flex items-end space-x-3 ">
+
+											{/* Controls Section - Desktop: inline, Mobile: justified */}
+											<div className="flex flex-col md:flex-row md:items-end md:justify-end space-y-3 md:space-y-0 md:space-x-3">
 												{/* Language Selector for TTS */}
 												<div className="flex flex-col">
 													<span className="text-xs text-slate-600 mb-1">
@@ -444,7 +510,7 @@ export function ChapterPage() {
 														value={speechLanguage}
 														onValueChange={setSpeechLanguage}
 													>
-														<SelectTrigger className="w-32 h-8 text-xs cursor-pointer">
+														<SelectTrigger className="w-full md:w-32 h-8 text-xs cursor-pointer">
 															<SelectValue />
 														</SelectTrigger>
 														<SelectContent>
@@ -468,7 +534,7 @@ export function ChapterPage() {
 													variant="outline"
 													size="sm"
 													onClick={handlePlayPause}
-													className="flex items-center space-x-2 cursor-pointer"
+													className="flex items-center justify-center space-x-2 cursor-pointer w-full md:w-auto"
 													style={{ contain: "layout style" }}
 												>
 													{isPlaying ? (
@@ -567,7 +633,7 @@ export function ChapterPage() {
 										{englishTranslations.length > 0 && (
 											<div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 rounded-lg">
 												{" "}
-												<div className="flex items-center justify-between mb-3">
+												<div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-3">
 													{" "}
 													<h3 className="text-lg font-semibold text-green-800 dark:text-green-200">
 														{" "}
@@ -580,7 +646,7 @@ export function ChapterPage() {
 																setSelectedTranslationIndex(Number(value))
 															}
 														>
-															<SelectTrigger className="w-48 text-sm cursor-pointer">
+															<SelectTrigger className="w-full sm:w-48 text-sm cursor-pointer">
 																<SelectValue placeholder="Select translator" />
 															</SelectTrigger>
 															<SelectContent className="bg-white dark:bg-slate-950 text-black dark:text-white">
@@ -664,30 +730,61 @@ export function ChapterPage() {
 													</div>{" "}
 												</div>
 											)}{" "}
-										{/* Navigation */}{" "}
-										<div className="flex justify-between items-center pt-4">
-											{" "}
-											<Button
-												variant="outline"
-												onClick={handlePreviousVerse}
-												disabled={selectedVerse === 1}
-												className="cursor-pointer"
-											>
-												{" "}
-												← Previous Verse{" "}
-											</Button>{" "}
-											<span className="text-sm text-slate-500">
-												{" "}
-												{selectedVerse} of {currentChapter.verses_count}{" "}
-											</span>{" "}
-											<Button
-												variant="outline"
-												onClick={handleNextVerse}
-												disabled={selectedVerse === currentChapter.verses_count}
-												className="cursor-pointer"
-											>
-												Next Verse →
-											</Button>
+										{/* Navigation */}
+										<div className="pt-4">
+											{/* Mobile Layout - Stacked */}
+											<div className="flex flex-col space-y-3 sm:hidden">
+												<span className="text-sm text-slate-500 text-center">
+													{selectedVerse} of {currentChapter.verses_count}
+												</span>
+												<div className="flex space-x-3">
+													<Button
+														variant="outline"
+														onClick={handlePreviousVerse}
+														disabled={selectedVerse === 1}
+														className="cursor-pointer flex-1"
+														size="sm"
+													>
+														← Prev
+													</Button>
+													<Button
+														variant="outline"
+														onClick={handleNextVerse}
+														disabled={
+															selectedVerse === currentChapter.verses_count
+														}
+														className="cursor-pointer flex-1"
+														size="sm"
+													>
+														Next →
+													</Button>
+												</div>
+											</div>
+
+											{/* Desktop Layout - Horizontal */}
+											<div className="hidden sm:flex justify-between items-center">
+												<Button
+													variant="outline"
+													onClick={handlePreviousVerse}
+													disabled={selectedVerse === 1}
+													className="cursor-pointer"
+												>
+													← Previous Verse
+												</Button>
+												<span className="text-sm text-slate-500">
+													{selectedVerse} of {currentChapter.verses_count}
+												</span>
+												<Button
+													variant="outline"
+													onClick={handleNextVerse}
+													disabled={
+														selectedVerse === currentChapter.verses_count
+													}
+													className="cursor-pointer"
+												>
+													Next Verse →
+												</Button>
+											</div>
 										</div>
 									</CardContent>
 								</Card>
