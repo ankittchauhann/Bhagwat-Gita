@@ -1,17 +1,77 @@
-Welcome to your new TanStack app! 
+# Bhagavad Gita App 🕉️
 
-# Getting Started
+A beautiful, interactive web application for reading and studying the Bhagavad Gita, built with React, TypeScript, and modern web technologies.
 
-To run this application:
+## Features ✨
+
+- **Beautiful Dashboard**: Welcome page with "Namaste" greeting to start your spiritual journey
+- **All 18 Chapters**: Browse through all chapters with beautiful overview cards
+- **Chapter Details**: Detailed view of each chapter with:
+  - Sanskrit verses (श्लोक)
+  - Transliteration in Roman script
+  - English translations
+  - Chapter summaries
+- **Verse Navigation**: Sidebar with all verses for easy navigation
+- **Bilingual Content**: Both Hindi (Sanskrit) and English text
+- **Responsive Design**: Works perfectly on desktop, tablet, and mobile
+- **Modern UI**: Built with ShadCN components and Tailwind CSS
+- **State Management**: Powered by Zustand for efficient state management
+
+## Tech Stack 🛠️
+
+- **Frontend**: React 19, TypeScript
+- **Routing**: TanStack Router
+- **Styling**: Tailwind CSS, ShadCN UI Components
+- **State Management**: Zustand
+- **Build Tool**: Vite
+- **Package Manager**: Bun
+- **Icons**: Lucide React
+- **Linting**: Biome
+
+## API Integration 🔌
+
+The app uses the Bhagavad Gita API from RapidAPI:
 
 ```bash
-bun install
-bunx --bun run start
+curl --request GET \
+  --url 'https://bhagavad-gita3.p.rapidapi.com/v2/chapters/?skip=0&limit=18' \
+  --header 'x-rapidapi-host: bhagavad-gita3.p.rapidapi.com' \
+  --header 'x-rapidapi-key: YOUR_API_KEY'
 ```
 
-# Building For Production
+### Available Endpoints
 
-To build this application for production:
+- `/chapters` - Get all 18 chapters
+- `/chapters/{id}` - Get specific chapter details
+- `/chapters/{id}/verses` - Get all verses of a chapter
+- `/chapters/{chapter}/verses/{verse}` - Get specific verse
+
+## Getting Started 🚀
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd Bhagwat-Gita
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   bun install
+   ```
+
+3. **Update API Key**
+   - Open `src/store/gitaStore.ts`
+   - Replace the API_KEY with your RapidAPI key
+
+4. **Start development server**
+
+   ```bash
+   bun run dev
+   ```
+
+5. **Build for production**
 
 ```bash
 bunx --bun run build
@@ -29,11 +89,9 @@ bunx --bun run test
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
-
 ## Linting & Formatting
 
 This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
 
 ```bash
 bunx --bun run lint
@@ -41,9 +99,8 @@ bunx --bun run format
 bunx --bun run check
 ```
 
-
-
 ## Routing
+
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
 
 ### Adding A Route
@@ -103,7 +160,6 @@ export const Route = createRootRoute({
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
 
 More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
 
 ## Data Fetching
 
