@@ -30,6 +30,9 @@ export interface Verse {
 	verse_number: number;
 	chapter_number: number;
 	text: string;
+	transliteration: string;
+	word_meanings?: string;
+	slug?: string;
 	translations: Translation[];
 	commentaries: Commentary[];
 }
@@ -216,6 +219,7 @@ export const useGitaStore = create<GitaState>((set) => ({
 			);
 
 			const verse = await response.json();
+			console.log("Fetched verse data:", verse); // Debug log to see the data structure
 			set({ currentVerse: verse, loading: false });
 		} catch (error) {
 			console.error(

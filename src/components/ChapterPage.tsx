@@ -46,6 +46,20 @@ export function ChapterPage() {
 			handleVerseSelect(selectedVerse + 1);
 		}
 	};
+	// Debug: Log the current verse data to see what we have
+	useEffect(() => {
+		if (currentVerse) {
+			console.log("Current verse data:", {
+				id: currentVerse.id,
+				text: `${currentVerse.text?.substring(0, 50)}...`,
+				transliteration: `${currentVerse.transliteration?.substring(0, 50)}...`,
+				word_meanings: `${currentVerse.word_meanings?.substring(0, 100)}...`,
+				translations_count: currentVerse.translations?.length,
+				commentaries_count: currentVerse.commentaries?.length,
+			});
+		}
+	}, [currentVerse]);
+
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 flex items-center justify-center">
@@ -228,44 +242,108 @@ export function ChapterPage() {
 								<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 									{" "}
 									<CardHeader>
-										{" "}
 										<div className="flex items-center justify-between">
-											{" "}
 											<CardTitle className="text-xl">
-												{" "}
-												Verse {currentVerse.verse_number}{" "}
-											</CardTitle>{" "}
+												Verse {currentVerse.verse_number}
+											</CardTitle>
 											<Button
 												variant="outline"
 												size="sm"
 												onClick={() => setIsPlaying(!isPlaying)}
 												className="flex items-center space-x-2"
 											>
-												{" "}
 												{isPlaying ? (
 													<Pause className="h-4 w-4" />
 												) : (
 													<Play className="h-4 w-4" />
-												)}{" "}
-												<span>{isPlaying ? "Pause" : "Play"}</span>{" "}
-											</Button>{" "}
-										</div>{" "}
-									</CardHeader>{" "}
+												)}
+												<span>{isPlaying ? "Pause" : "Play"}</span>
+											</Button>
+										</div>
+
+										{/* Content Features Notice */}
+										<div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+											<div className="flex flex-wrap gap-2 text-xs">
+												<span className="inline-flex items-center px-2 py-1 bg-orange-100 text-orange-800 rounded-full">
+													🕉️ Sanskrit
+												</span>
+												{currentVerse.transliteration && (
+													<span className="inline-flex items-center px-2 py-1 bg-amber-100 text-amber-800 rounded-full">
+														🔤 Transliteration
+													</span>
+												)}
+												{currentVerse.word_meanings && (
+													<span className="inline-flex items-center px-2 py-1 bg-teal-100 text-teal-800 rounded-full">
+														📖 Word Meanings
+													</span>
+												)}
+												{englishTranslations.length > 0 && (
+													<span className="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-full">
+														🇬🇧 English ({englishTranslations.length})
+													</span>
+												)}
+												{hindiTranslations.length > 0 && (
+													<span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+														🇮🇳 Hindi ({hindiTranslations.length})
+													</span>
+												)}
+												{currentVerse.commentaries &&
+													currentVerse.commentaries.length > 0 && (
+														<span className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full">
+															📚 Commentaries (
+															{currentVerse.commentaries.length})
+														</span>
+													)}
+											</div>
+										</div>
+									</CardHeader>
 									<CardContent className="space-y-6">
-										{" "}
-										{/* Sanskrit Text */}{" "}
+										{/* Sanskrit Text */}
 										<div className="p-6 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900 dark:to-yellow-900 rounded-lg">
-											{" "}
 											<h3 className="text-lg font-semibold mb-3 text-orange-800 dark:text-orange-200">
-												{" "}
-												Sanskrit (संस्कृत){" "}
-											</h3>{" "}
+												Sanskrit (संस्कृत)
+											</h3>
 											<p className="text-xl leading-relaxed font-sanskrit text-slate-800 dark:text-slate-200 whitespace-pre-line">
-												{" "}
-												{currentVerse.text}{" "}
-											</p>{" "}
-										</div>{" "}
-										{/* English Translations */}{" "}
+												{currentVerse.text}
+											</p>
+										</div>
+										{/* Transliteration */}
+										{currentVerse.transliteration && (
+											<div className="p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900 dark:to-orange-900 rounded-lg">
+												<h3 className="text-lg font-semibold mb-3 text-amber-800 dark:text-amber-200">
+													Transliteration (IAST)
+												</h3>
+												<p className="text-lg leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line italic">
+													{currentVerse.transliteration}
+												</p>
+												<p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+													Roman script pronunciation guide
+												</p>
+											</div>
+										)}
+										{/* Word Meanings */}
+										<div className="p-6 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900 dark:to-cyan-900 rounded-lg border border-teal-200">
+											<h3 className="text-lg font-semibold mb-3 text-teal-800 dark:text-teal-200 flex items-center gap-2">
+												<span>📖</span> Word Meanings (पदार्थ)
+											</h3>
+											{currentVerse.word_meanings ? (
+												<>
+													<div className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-line bg-white/50 dark:bg-slate-800/50 p-3 rounded border">
+														{currentVerse.word_meanings}
+													</div>
+													<p className="text-xs text-teal-600 dark:text-teal-400 mt-2 italic">
+														Word-by-word meanings and explanations
+													</p>
+												</>
+											) : (
+												<div className="text-sm text-slate-500 dark:text-slate-400 italic bg-slate-100 dark:bg-slate-800 p-3 rounded">
+													Word meanings not available for this verse. Please
+													check other translations and commentaries for detailed
+													explanations.
+												</div>
+											)}
+										</div>
+										{/* English Translations */}
 										{englishTranslations.length > 0 && (
 											<div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 rounded-lg">
 												{" "}
