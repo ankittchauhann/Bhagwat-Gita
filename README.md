@@ -1,6 +1,14 @@
 # Bhagavad Gita App 🕉️
 
-A beautiful, immersive web application for reading and studying the Bhagavad Gita, built with modern React, TypeScript, and spiritual design principles. Experience the timeless wisdom of Krishna's teachings through an elegant, accessible digital interface.
+A beauti- **Rich Content Presentation**:
+
+- **Sanskrit Verses**: Authentic Devanagari with proper line breaks
+- **Word Meanings**: Detailed Sanskrit word meanings when available
+- **Transliteration**: Roman script pronunciation guide
+- **Multiple English Translations**: Support for different scholars and authors
+- **Hindi Translations**: Comprehensive Hindi commentary support
+- **Scholarly Commentaries**: Access to traditional and modern interpretations
+- **Translation Selector**: Switch between different English translation authorsmersive web application for reading and studying the Bhagavad Gita, built with modern React, TypeScript, and spiritual design principles. Experience the timeless wisdom of Krishna's teachings through an elegant, accessible digital interface.
 
 ## ✨ Features
 
@@ -10,7 +18,8 @@ A beautiful, immersive web application for reading and studying the Bhagavad Git
 - **Divine Aesthetics**: Gradient backgrounds inspired by traditional Indian art (oranges, reds, golds)  
 - **Sacred Typography**: Authentic Devanagari fonts (Noto Sans Devanagari, Mangal)
 - **Interactive Journey**: Feature cards showcasing app capabilities
-- **Inspirational Content**: Sacred verse quotes with translations
+- **Inspirational Content**: Random sacred verse quotes with translations
+- **Theme Toggle**: Dark/Light mode support for comfortable reading
 
 ### � **Comprehensive Chapter Navigation**
 
@@ -21,7 +30,7 @@ A beautiful, immersive web application for reading and studying the Bhagavad Git
   - Roman transliteration for pronunciation guidance  
   - English translations and spiritual meanings
   - Verse counts and detailed chapter summaries
-- **Live Data**: Real-time integration with Bhagavad Gita API
+- **Live Data**: Real-time integration with Bhagavad Gita API via RapidAPI
 
 ### 🎯 **Immersive Chapter Experience**
 
@@ -40,15 +49,17 @@ A beautiful, immersive web application for reading and studying the Bhagavad Git
 
 ### 🛡️ **Robust Technical Foundation**
 
-- **CORS Resolution**: Intelligent proxy server setup for seamless API access
+- **Dual API Strategy**:
+  - Primary: Vercel serverless functions for CORS resolution
+  - Fallback: Direct RapidAPI integration with proper error handling
 - **Advanced Error Handling**:
-  - Automatic retry logic with exponential backoff
+  - Automatic retry logic with fallback mechanisms
   - Timeout protection (10-second request limits)
-  - Network status monitoring
+  - Network status monitoring with `useNetworkStatus` hook
   - Descriptive error messages with troubleshooting hints
 - **Performance Optimized**:
   - Intelligent loading states
-  - Request caching and deduplication
+  - Efficient state management with Zustand
   - Responsive image loading
   - Smooth transitions and animations
 
@@ -56,7 +67,8 @@ A beautiful, immersive web application for reading and studying the Bhagavad Git
 
 - **Fully Responsive**: Perfect experience on desktop, tablet, and mobile
 - **Spiritual Color Palette**: Warm oranges, deep reds, and golden accents
-- **Glass Morphism**: Modern UI with backdrop blur effects and transparency
+- **Glass Morphism**: Modern UI with backdrop blur effects and transparency (`backdrop-blur-md`, `bg-white/70`)
+- **Modern UI Components**: Built with Tailwind CSS and ShadCN UI
 - **Accessibility First**: Proper contrast ratios, keyboard navigation, screen reader support
 - **Smooth Interactions**: Elegant hover effects and micro-animations
 
@@ -93,14 +105,66 @@ A beautiful, immersive web application for reading and studying the Bhagavad Git
 - **Request Timeout Handling** for better user experience
 - **Network Status Monitoring** for connectivity awareness
 
-## 🔌 API Integration & CORS Solution
+## 🔌 API Integration & Dual Strategy
 
-### **CORS Resolution**
+### **Dual API Approach**
 
-We've implemented a sophisticated proxy server solution to handle CORS restrictions:
+The app implements a sophisticated dual-strategy approach for maximum reliability:
+
+1. **Primary Strategy**: Vercel serverless functions (`/api` routes)
+2. **Fallback Strategy**: Direct RapidAPI integration with CORS headers
 
 ```typescript
-// vite.config.ts - Proxy Configuration
+// Dual strategy implementation in gitaStore.ts
+const fetchWithRetryAndFallback = async (endpoint, options, retries = 2, timeout = 10000) => {
+  // First try: Vercel API route
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    if (response.ok) return response;
+    throw new Error(`Vercel API failed with status: ${response.status}`);
+  } catch (error) {
+    // Fallback: Direct RapidAPI call
+    const response = await fetch(`${FALLBACK_API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        ...options.headers,
+      },
+    });
+    return response;
+  }
+};
+```
+
+### **Vercel API Routes**
+
+For production deployment, we use Vercel serverless functions to handle CORS:
+
+```javascript
+// api/chapters.js
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  const response = await fetch(`${process.env.RAPIDAPI_BASE_URL}/chapters/?skip=${skip}&limit=${limit}`, {
+    headers: {
+      'x-rapidapi-host': process.env.RAPIDAPI_HOST,
+      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
+    },
+  });
+  
+  const data = await response.json();
+  res.status(200).json(data);
+}
+```
+
+### **Development Proxy**
+
+For local development, Vite proxy handles CORS:
+
+```typescript
+// vite.config.ts - Development Proxy
 server: {
   proxy: {
     '/api': {
@@ -144,15 +208,39 @@ GET /api/chapters/{id}/verses
 GET /api/chapters/{chapter}/verses/{verse}/
 ```
 
-### **Advanced Error Handling**
+### **Error Handling & Reliability**
+
+The app implements comprehensive error handling:
 
 ```typescript
-const fetchWithRetry = async (url, options, retries = 3, timeout = 10000) => {
-  // Automatic retry with exponential backoff
-  // Request timeout protection
-  // Network error differentiation
-  // CORS error handling
-}
+// Automatic fallback and timeout protection
+const fetchWithRetryAndFallback = async (endpoint, options, retries = 2, timeout = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    // Primary: Vercel API route
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      signal: controller.signal,
+    });
+    if (response.ok) return response;
+  } catch (error) {
+    // Fallback: Direct RapidAPI
+    const fallbackResponse = await fetch(`${FALLBACK_API_BASE_URL}${endpoint}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'x-rapidapi-host': RAPIDAPI_HOST,
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        ...options.headers,
+      },
+    });
+    return fallbackResponse;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
 ```
 
 ## 🚀 Quick Start
@@ -178,11 +266,22 @@ const fetchWithRetry = async (url, options, retries = 3, timeout = 10000) => {
    bun install
    ```
 
-3. **Configure API Key**
+3. **Configure Environment Variables**
+
+   **For Development:**
    Update the API key in `vite.config.ts`:
 
    ```typescript
    proxyReq.setHeader('x-rapidapi-key', 'your-rapidapi-key-here');
+   ```
+
+   **For Production (Vercel):**
+   Set environment variables in your Vercel dashboard or `.env`:
+
+   ```env
+   RAPIDAPI_KEY=your-rapidapi-key-here
+   RAPIDAPI_HOST=bhagavad-gita3.p.rapidapi.com
+   RAPIDAPI_BASE_URL=https://bhagavad-gita3.p.rapidapi.com/v2
    ```
 
 4. **Start development server**
@@ -202,29 +301,36 @@ const fetchWithRetry = async (url, options, retries = 3, timeout = 10000) => {
 ## 📁 Project Architecture
 
 ```
-src/
-├── components/
-│   ├── ui/                     # ShadCN UI Component Library
-│   │   ├── button.tsx          # Customizable button component
-│   │   ├── card.tsx            # Content card components
-│   │   ├── input.tsx           # Form input components
-│   │   └── ...                 # Additional UI primitives
-│   ├── Dashboard.tsx           # Sacred welcome experience
-│   ├── ChaptersPage.tsx        # All chapters with search
-│   ├── ChapterPage.tsx         # Rich chapter/verse display
-│   └── Header.tsx              # Navigation header component
-├── store/
-│   └── gitaStore.ts            # Zustand state management
-├── hooks/
-│   └── useNetworkStatus.ts     # Network connectivity monitoring
-├── lib/
-│   └── utils.ts                # Utility functions (cn helper)
-├── routes/                     # File-based routing system
-│   ├── __root.tsx              # Root layout with navigation
-│   ├── index.tsx               # Dashboard route (/)
-│   ├── chapters.tsx            # Chapters listing (/chapters)  
-│   └── chapter.$chapterId.tsx  # Dynamic chapter pages
-└── styles.css                 # Global styles with Sanskrit fonts
+├── api/                        # Vercel serverless functions
+│   ├── chapters.js             # Get all chapters endpoint
+│   ├── health.js              # Health check endpoint
+│   └── chapters/              # Chapter-specific endpoints
+├── src/
+│   ├── components/
+│   │   ├── ui/                 # ShadCN UI Component Library
+│   │   │   ├── button.tsx      # Customizable button component
+│   │   │   ├── card.tsx        # Content card components
+│   │   │   ├── input.tsx       # Form input components
+│   │   │   └── select.tsx      # Select dropdown components
+│   │   ├── Dashboard.tsx       # Sacred welcome experience with rotating verses
+│   │   ├── ChaptersPage.tsx    # All chapters with search functionality
+│   │   ├── ChapterPage.tsx     # Rich chapter/verse display with translations
+│   │   ├── Header.tsx          # Navigation header component
+│   │   └── ThemeToggle.tsx     # Dark/Light theme switcher
+│   ├── store/
+│   │   └── gitaStore.ts        # Zustand state management with dual API strategy
+│   ├── hooks/
+│   │   └── useNetworkStatus.ts # Network connectivity monitoring
+│   ├── lib/
+│   │   └── utils.ts            # Utility functions (cn helper, etc.)
+│   ├── routes/                 # File-based routing system
+│   │   ├── __root.tsx          # Root layout with navigation
+│   │   ├── index.tsx           # Dashboard route (/)
+│   │   ├── chapters.tsx        # Chapters listing (/chapters)  
+│   │   └── chapter.$chapterId.tsx # Dynamic chapter pages
+│   └── styles.css              # Global styles with Sanskrit fonts
+├── public/                     # Static assets and favicons
+└── vite.config.ts             # Development proxy configuration
 ```
 
 ## 🧭 User Journey Flow
@@ -336,23 +442,25 @@ bun run lint             # Run Biome linter
 bun run format           # Format with Biome
 bun run check            # Lint + format combined
 
-# Future Testing
-bun run test             # Run test suite (when implemented)
+# Testing
+bun run test             # Run test suite (Vitest)
 ```
 
 ## 🌟 Production Deployment
 
 ### **Deployment Options**
 
-1. **Vercel** (Recommended)
+1. **Vercel** (Recommended - includes API routes)
 
    ```bash
    # Install Vercel CLI
    npm i -g vercel
    
-   # Deploy
+   # Deploy with serverless functions
    vercel
    ```
+
+   The app includes Vercel serverless functions in the `api/` directory for CORS handling.
 
 2. **Netlify**
 
@@ -362,28 +470,44 @@ bun run test             # Run test suite (when implemented)
    # Upload dist/ folder to Netlify
    ```
 
+   Note: For Netlify, you'll need to configure serverless functions separately or use direct API calls.
+
 3. **Custom Server**
    - Serve `dist/` folder with a static server
-   - Configure API proxy for production
+   - Set up proxy routes for `/api/*` endpoints
 
 ### **Environment Variables**
 
+**For Vercel (Production):**
+
 ```env
+RAPIDAPI_KEY=your-rapidapi-key-here
+RAPIDAPI_HOST=bhagavad-gita3.p.rapidapi.com
+RAPIDAPI_BASE_URL=https://bhagavad-gita3.p.rapidapi.com/v2
+```
+
+**For Development:**
+
+```env
+# Update in vite.config.ts
 VITE_RAPIDAPI_KEY=your-api-key-here
-VITE_API_BASE_URL=https://your-api-proxy.com
 ```
 
 ## 🚧 Future Roadmap
 
-### **Phase 1: Enhanced Verse Experience** 📍 Current
+### **Phase 1: Core Features** ✅ Completed
 
 - [x] Rich verse display with multiple translations
-- [x] Commentary integration
+- [x] Commentary integration with scholarly interpretations
 - [x] Translation author selection
-- [x] Enhanced error handling with retry logic
-- [x] CORS resolution with proxy server
+- [x] Enhanced error handling with dual API strategy
+- [x] CORS resolution with Vercel serverless functions
+- [x] Glass morphism UI with backdrop blur effects
+- [x] Responsive design with spiritual aesthetics
+- [x] Dark/Light theme support
+- [x] Word meanings and transliteration support
 
-### **Phase 2: Audio & Multimedia**
+### **Phase 2: Audio & Multimedia** 🔜 Next Priority
 
 - [ ] Sanskrit pronunciation audio
 - [ ] Verse-by-verse audio playback
@@ -509,160 +633,4 @@ May this digital offering serve as a bridge between ancient wisdom and modern te
 
 </div>
 
-First add your dependencies:
-
-```bash
-bun install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-bun install @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+</div>
