@@ -9,6 +9,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { BookOpen, Heart, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ContinueReading } from "./ContinueReading";
 import { ThemeToggle } from "./ThemeToggle";
 
 // Collection of inspiring verses from Bhagavad Gita
@@ -133,6 +134,13 @@ export function Dashboard() {
 							🙏 Namaste
 						</Button>
 					</div>
+				</div>
+			</div>
+
+			{/* Continue Reading Section */}
+			<div className="container mx-auto px-4 pb-12">
+				<div className="max-w-4xl mx-auto">
+					<ContinueReading />
 				</div>
 			</div>
 

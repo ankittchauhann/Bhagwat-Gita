@@ -34,7 +34,11 @@ export function ChaptersPage() {
 	);
 
 	const handleChapterClick = (chapterId: number) => {
-		navigate({ to: `/chapter/${chapterId}` });
+		navigate({
+			to: "/chapter/$chapterId",
+			params: { chapterId: chapterId.toString() },
+			search: { verse: 1 }, // Always start at verse 1 when selecting from chapters list
+		});
 	};
 
 	const handleBackToDashboard = () => {

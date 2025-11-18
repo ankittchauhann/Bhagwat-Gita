@@ -14,7 +14,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { useGitaStore } from "@/store/gitaStore";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useReadingHistory } from "@/store/readingHistoryStore";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Pause, Play } from "lucide-react";
 import {
 	memo,
@@ -58,6 +59,7 @@ const VerseButton = memo(
 export function ChapterPage() {
 	const navigate = useNavigate();
 	const params = useParams({ from: "/chapter/$chapterId" });
+	const search = useSearch({ from: "/chapter/$chapterId" });
 	const chapterId = Number.parseInt(params.chapterId);
 	const {
 		currentChapter,
@@ -67,7 +69,9 @@ export function ChapterPage() {
 		fetchChapter,
 		fetchVerse,
 	} = useGitaStore();
-	const [selectedVerse, setSelectedVerse] = useState<number>(1);
+	const { setLastPosition, addToHistory, markVerseAsRead, lastPosition } =
+		useReadingHistory();
+	const [selectedVerse, setSelectedVerse] = useState<number>(search.verse || 1);
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [selectedTranslationIndex, setSelectedTranslationIndex] = useState(0);
 	const [speechLanguage, setSpeechLanguage] = useState<string>("hi-IN"); // Default to Hindi
@@ -127,10 +131,17 @@ export function ChapterPage() {
 		(verseNumber: number) => {
 			startTransition(() => {
 				setSelectedVerse(verseNumber);
+				// Update URL with verse parameter
+				navigate({
+					to: "/chapter/$chapterId",
+					params: { chapterId: chapterId.toString() },
+					search: { verse: verseNumber },
+					replace: true, // Don't add to history stack
+				});
 			});
 			fetchVerse(chapterId, verseNumber);
 		},
-		[chapterId, fetchVerse],
+		[chapterId, fetchVerse, navigate],
 	);
 
 	const handlePreviousVerse = useCallback(() => {
@@ -237,10 +248,68 @@ export function ChapterPage() {
 		));
 	}, [currentChapter, selectedVerse, handleVerseSelect]);
 
+	// Sync selectedVerse when URL changes
+	useEffect(() => {
+		if (search.verse && search.verse !== selectedVerse) {
+			setSelectedVerse(search.verse);
+		}
+	}, [search.verse, selectedVerse]);
+
+	// Initialize from lastPosition if verse not in URL
+	useEffect(() => {
+		if (
+			!search.verse &&
+			lastPosition &&
+			lastPosition.chapterId === chapterId &&
+			lastPosition.verseNumber !== selectedVerse
+		) {
+			setSelectedVerse(lastPosition.verseNumber);
+			navigate({
+				to: "/chapter/$chapterId",
+				params: { chapterId: chapterId.toString() },
+				search: { verse: lastPosition.verseNumber },
+				replace: true,
+			});
+		}
+	}, [chapterId, lastPosition, search.verse, selectedVerse, navigate]);
+
 	useEffect(() => {
 		fetchChapter(chapterId);
 		fetchVerse(chapterId, selectedVerse);
 	}, [chapterId, fetchChapter, fetchVerse, selectedVerse]);
+
+	// Auto-save reading progress whenever verse or chapter changes
+	useEffect(() => {
+		if (currentChapter && currentVerse) {
+			// Save last position
+			setLastPosition({
+				chapterId: currentChapter.chapter_number,
+				verseNumber: currentVerse.verse_number,
+				chapterName: currentChapter.name,
+				chapterNameTranslated: currentChapter.name_translated,
+				timestamp: Date.now(),
+			});
+
+			// Add to history with verse preview
+			addToHistory({
+				chapterId: currentChapter.chapter_number,
+				verseNumber: currentVerse.verse_number,
+				chapterName: currentChapter.name,
+				chapterNameTranslated: currentChapter.name_translated,
+				versePreview: currentVerse.text?.substring(0, 100) || "",
+				timestamp: Date.now(),
+			});
+
+			// Mark verse as read
+			markVerseAsRead(currentChapter.chapter_number, currentVerse.verse_number);
+		}
+	}, [
+		currentChapter,
+		currentVerse,
+		setLastPosition,
+		addToHistory,
+		markVerseAsRead,
+	]);
 	// Debug: Log the current verse data to see what we have
 	useEffect(() => {
 		if (currentVerse) {
@@ -426,7 +495,7 @@ export function ChapterPage() {
 									<Select
 										value={selectedVerse.toString()}
 										onValueChange={(value) =>
-											setSelectedVerse(Number.parseInt(value))
+											handleVerseSelect(Number.parseInt(value))
 										}
 									>
 										<SelectTrigger className="w-full">
