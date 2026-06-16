@@ -142,7 +142,6 @@ export const useReadingHistory = create<ReadingHistoryState>((set, get) => ({
 		// Check if bookmark already exists
 		const exists = bookmarks.some((b) => b.id === bookmark.id);
 		if (exists) {
-			console.log("Bookmark already exists");
 			return;
 		}
 

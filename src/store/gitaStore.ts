@@ -60,23 +60,17 @@ interface GitaState {
 	fetchVerse: (chapterId: number, verseNumber: number) => Promise<void>;
 }
 
-const API_BASE_URL = "/api"; // Use Vercel API endpoint
-const FALLBACK_API_BASE_URL = "https://bhagavad-gita3.p.rapidapi.com/v2"; // Fallback direct API
-const RAPIDAPI_KEY = "4af41e915emshcd8cf0801c6079dp1b0ba6jsn3535b27141fd";
-const RAPIDAPI_HOST = "bhagavad-gita3.p.rapidapi.com";
+const API_BASE_URL = "/api"; // Same-origin Vercel serverless functions; the RapidAPI key never reaches the browser
 
-// Utility function to create fetch with retry and fallback
-const fetchWithRetryAndFallback = async (
+const fetchApi = async (
 	endpoint: string,
 	options: RequestInit = {},
-	retries = 2,
 	timeout = 10000,
 ): Promise<Response> => {
-	// First try: Vercel API route
-	try {
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), timeout);
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+	try {
 		const response = await fetch(`${API_BASE_URL}${endpoint}`, {
 			...options,
 			signal: controller.signal,
@@ -86,42 +80,13 @@ const fetchWithRetryAndFallback = async (
 			},
 		});
 
-		clearTimeout(timeoutId);
-
-		if (response.ok) {
-			return response;
-		}
-
-		// If Vercel API fails, throw error to trigger fallback
-		throw new Error(`Vercel API failed with status: ${response.status}`);
-	} catch (error) {
-		console.warn("Vercel API failed, trying direct RapidAPI:", error);
-
-		// Fallback: Direct RapidAPI call
-		const controller = new AbortController();
-		const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-		const directUrl = `${FALLBACK_API_BASE_URL}${endpoint}`;
-		const response = await fetch(directUrl, {
-			...options,
-			signal: controller.signal,
-			headers: {
-				"x-rapidapi-host": RAPIDAPI_HOST,
-				"x-rapidapi-key": RAPIDAPI_KEY,
-				"Content-Type": "application/json",
-				...options.headers,
-			},
-		});
-
-		clearTimeout(timeoutId);
-
 		if (!response.ok) {
-			throw new Error(
-				`Both APIs failed. Direct API status: ${response.status}`,
-			);
+			throw new Error(`API request failed with status: ${response.status}`);
 		}
 
 		return response;
+	} finally {
+		clearTimeout(timeoutId);
 	}
 };
 
@@ -143,9 +108,7 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchChapters: async () => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetchWithRetryAndFallback(
-				"/chapters/?skip=0&limit=18",
-			);
+			const response = await fetchApi("/chapters?skip=0&limit=18");
 
 			const chapters = await response.json();
 			set({ chapters, loading: false });
@@ -164,9 +127,7 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchChapter: async (chapterId: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetchWithRetryAndFallback(
-				`/chapters/${chapterId}/`,
-			);
+			const response = await fetchApi(`/chapters/${chapterId}`);
 
 			const chapter = await response.json();
 			set({ currentChapter: chapter, loading: false });
@@ -185,9 +146,7 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchVerses: async (chapterId: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetchWithRetryAndFallback(
-				`/chapters/${chapterId}/verses`,
-			);
+			const response = await fetchApi(`/chapters/${chapterId}/verses`);
 
 			const verses = await response.json();
 			set({ verses, loading: false });
@@ -206,12 +165,11 @@ export const useGitaStore = create<GitaState>((set) => ({
 	fetchVerse: async (chapterId: number, verseNumber: number) => {
 		set({ loading: true, error: null });
 		try {
-			const response = await fetchWithRetryAndFallback(
-				`/chapters/${chapterId}/verses/${verseNumber}/`,
+			const response = await fetchApi(
+				`/chapters/${chapterId}/verses/${verseNumber}`,
 			);
 
 			const verse = await response.json();
-			console.log("Fetched verse data:", verse); // Debug log to see the data structure
 			set({ currentVerse: verse, loading: false });
 		} catch (error) {
 			console.error(

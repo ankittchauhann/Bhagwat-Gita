@@ -1,6 +1,8 @@
 # API Setup for Bhagavad Gita App
 
-This directory contains Vercel API routes that proxy requests to the RapidAPI Bhagavad Gita service.
+This directory contains Vercel serverless functions that proxy requests to the RapidAPI Bhagavad Gita service. The RapidAPI key only ever lives in these server-side functions (read from `process.env`) — it is never sent to the browser.
+
+Route files under `api/chapters/` use Vercel's bracket-folder convention (e.g. `[chapterId].js`) to map URL params, and just re-export the actual handler logic from `api/_handlers/`. Files and folders prefixed with `_` are not deployed as routes, so `api/_lib` and `api/_handlers` are safe places for shared code and are also what the Vitest suite imports directly (bracket paths can't be globbed reliably by test runners).
 
 ## Environment Variables
 
