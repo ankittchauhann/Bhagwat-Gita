@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Speech from "speak-tts";
 
 export const speechLanguages = [
 	{ value: "hi-IN", label: "Hindi", flag: "🇮🇳" },
@@ -6,46 +7,66 @@ export const speechLanguages = [
 	{ value: "hi-IN-sanskrit", label: "Sanskrit (Hindi Voice)", flag: "🕉️" }, // Use Hindi voice for Sanskrit
 ];
 
+// speak-tts wraps the native Web Speech API: it resolves init() only once
+// voices have actually loaded (Chrome loads them asynchronously) and gives
+// speak()/cancel() a Promise-based API instead of fire-and-forget callbacks.
 export function useTextToSpeech() {
 	const [isPlaying, setIsPlaying] = useState(false);
+	const [isReady, setIsReady] = useState(false);
+	const speechRef = useRef<Speech | null>(null);
+
+	useEffect(() => {
+		const speech = new Speech();
+		if (!speech.hasBrowserSupport()) {
+			return;
+		}
+
+		let isMounted = true;
+		speech
+			.init({ rate: 0.8, pitch: 1, volume: 1, splitSentences: false })
+			.then(() => {
+				if (isMounted) {
+					speechRef.current = speech;
+					setIsReady(true);
+				}
+			})
+			.catch((error) => {
+				console.error("Failed to initialize text-to-speech:", error);
+			});
+
+		return () => {
+			isMounted = false;
+			speech.cancel();
+			speechRef.current = null;
+		};
+	}, []);
 
 	const speak = useCallback((text: string, lang: string) => {
-		if (!window.speechSynthesis) {
+		const speech = speechRef.current;
+		if (!speech) {
 			alert("Text-to-speech is not supported in your browser.");
 			return;
 		}
 
-		// Stop any ongoing speech
-		window.speechSynthesis.cancel();
+		speech.setLanguage(lang);
+		setIsPlaying(true);
 
-		const utterance = new SpeechSynthesisUtterance(text);
-		utterance.lang = lang;
-		utterance.rate = 0.8; // Slower for better comprehension
-		utterance.pitch = 1;
-		utterance.volume = 1;
-
-		utterance.onstart = () => setIsPlaying(true);
-		utterance.onend = () => setIsPlaying(false);
-		utterance.onerror = () => setIsPlaying(false);
-
-		window.speechSynthesis.speak(utterance);
+		speech
+			.speak({
+				text,
+				queue: false,
+				listeners: {
+					onend: () => setIsPlaying(false),
+					onerror: () => setIsPlaying(false),
+				},
+			})
+			.catch(() => setIsPlaying(false));
 	}, []);
 
 	const stop = useCallback(() => {
-		if (window.speechSynthesis) {
-			window.speechSynthesis.cancel();
-			setIsPlaying(false);
-		}
+		speechRef.current?.cancel();
+		setIsPlaying(false);
 	}, []);
 
-	// Clean up speech when the consuming component unmounts or verse changes
-	useEffect(() => {
-		return () => {
-			if (window.speechSynthesis) {
-				window.speechSynthesis.cancel();
-			}
-		};
-	}, []);
-
-	return { isPlaying, speak, stop };
+	return { isPlaying, isReady, speak, stop };
 }

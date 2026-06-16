@@ -14,7 +14,7 @@ export function ChapterSummaryCard({ chapter }: { chapter: Chapter }) {
 			style={{ contain: "layout style paint" }}
 		>
 			<CardHeader>
-				<CardTitle className="text-xl text-orange-700">
+				<CardTitle className="text-xl text-orange-700 font-sanskrit">
 					{chapter.name}
 				</CardTitle>
 				<CardDescription className="text-base">

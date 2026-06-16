@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@fontsource-variable/noto-sans-devanagari/wght.css";
 
 @custom-variant dark (&:is(.dark *));
 
 body {
 	@apply m-0;
+	/* Noto Sans Devanagari Variable is appended as a fallback so any Devanagari
+	   character (Sanskrit shlokas, Hindi translations, UI labels) renders with
+	   real glyphs instead of the browser's default Devanagari-less fallback. */
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
 		"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-		sans-serif;
+		"Noto Sans Devanagari Variable", sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -17,9 +21,9 @@ code {
 		monospace;
 }
 
-/* Sanskrit font styling */
+/* Sanskrit/Hindi (Devanagari) text styling */
 .font-sanskrit {
-	font-family: "Noto Sans Devanagari", "Mangal", "Kokila", "Utsaah", sans-serif;
+	font-family: "Noto Sans Devanagari Variable", sans-serif;
 	font-weight: 500;
 }
 
@@ -117,10 +121,6 @@ code {
 
 .switch input:checked ~ .slider .cloud {
 	opacity: 1;
-}
-.font-sanskrit {
-	font-family: "Noto Sans Devanagari", "Mangal", "Kokila", "Utsaah", "Aparajita",
-		sans-serif;
 }
 
 /* Custom line clamp utility */

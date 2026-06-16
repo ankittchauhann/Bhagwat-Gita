@@ -26,7 +26,7 @@ export function VerseDisplay({
 	onPreviousVerse: () => void;
 	onNextVerse: () => void;
 }) {
-	const { isPlaying, speak, stop } = useTextToSpeech();
+	const { isPlaying, isReady, speak, stop } = useTextToSpeech();
 	const [selectedTranslationIndex, setSelectedTranslationIndex] = useState(0);
 	const [speechLanguage, setSpeechLanguage] = useState<string>("hi-IN"); // Default to Hindi
 
@@ -140,6 +140,7 @@ export function VerseDisplay({
 							variant="outline"
 							size="sm"
 							onClick={handlePlayPause}
+							disabled={!isReady}
 							className="flex items-center justify-center space-x-2 cursor-pointer w-full md:w-auto"
 							style={{ contain: "layout style" }}
 						>
