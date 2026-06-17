@@ -6,22 +6,24 @@ Your app was failing on Vercel because the Vite proxy configuration (in `vite.co
 
 ## What We've Set Up
 
-### 1. Vercel API Routes (TypeScript)
+### 1. Vercel API Routes (JavaScript)
 
-- `api/chapters.ts` - List all chapters
-- `api/chapters/[chapterId].ts` - Get specific chapter
-- `api/chapters/[chapterId]/verses.ts` - Get all verses for a chapter  
-- `api/chapters/[chapterId]/verses/[verseNumber].ts` - Get specific verse
+- `api/chapters.js` - List all chapters
+- `api/chapters/[chapterId].js` - Get specific chapter
+- `api/chapters/[chapterId]/verses.js` - Get all verses for a chapter
+- `api/chapters/[chapterId]/verses/[verseNumber].js` - Get specific verse
+
+Each route file just re-exports the real handler from `api/_handlers/`, which is where the logic actually lives (kept out of bracket-path directories so it stays testable).
 
 ### 2. Environment Variables
 
-- `.env.local` - For local development (already configured)
+- `.env.local` - For local development (gitignored, not committed)
 - `.env.example` - Template for others
 - Environment variables are protected by `.gitignore`
 
-### 3. Generic Utility Functions
+### 3. Shared Utility Functions
 
-- `api/lib/utils.ts` - Reusable functions for API calls, CORS, error handling
+- `api/_lib/utils.js` - Reusable functions for CORS headers, env validation, and error responses
 
 ## Deployment Steps
 
@@ -38,9 +40,9 @@ git push origin main
 1. Go to your Vercel dashboard
 2. Select your Bhagwat-Gita project  
 3. Go to Settings → Environment Variables
-4. Add these variables:
+4. Add these variables (use your own RapidAPI key — never commit it to source):
    - `RAPIDAPI_HOST` = `bhagavad-gita3.p.rapidapi.com`
-   - `RAPIDAPI_KEY` = `4af41e915emshcd8cf0801c6079dp1b0ba6jsn3535b27141fd`
+   - `RAPIDAPI_KEY` = `<your-rapidapi-key>`
    - `RAPIDAPI_BASE_URL` = `https://bhagavad-gita3.p.rapidapi.com/v2`
 
 ### Step 3: Deploy

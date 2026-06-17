@@ -49,11 +49,10 @@ A beauti- **Rich Content Presentation**:
 
 ### 🛡️ **Robust Technical Foundation**
 
-- **Dual API Strategy**:
-  - Primary: Vercel serverless functions for CORS resolution
-  - Fallback: Direct RapidAPI integration with proper error handling
+- **Server-Side API Proxy**:
+  - All RapidAPI requests go through same-origin Vercel serverless functions
+  - The RapidAPI key lives only in server-side environment variables and is never sent to the browser
 - **Advanced Error Handling**:
-  - Automatic retry logic with fallback mechanisms
   - Timeout protection (10-second request limits)
   - Network status monitoring with `useNetworkStatus` hook
   - Descriptive error messages with troubleshooting hints
@@ -105,81 +104,60 @@ A beauti- **Rich Content Presentation**:
 - **Request Timeout Handling** for better user experience
 - **Network Status Monitoring** for connectivity awareness
 
-## 🔌 API Integration & Dual Strategy
+## 🔌 API Integration
 
-### **Dual API Approach**
+### **Server-Side Proxy Architecture**
 
-The app implements a sophisticated dual-strategy approach for maximum reliability:
-
-1. **Primary Strategy**: Vercel serverless functions (`/api` routes)
-2. **Fallback Strategy**: Direct RapidAPI integration with CORS headers
+The browser never talks to RapidAPI directly. Every request goes through a same-origin Vercel serverless function under `/api`, which is the only place the RapidAPI key is read (from `process.env`):
 
 ```typescript
-// Dual strategy implementation in gitaStore.ts
-const fetchWithRetryAndFallback = async (endpoint, options, retries = 2, timeout = 10000) => {
-  // First try: Vercel API route
+// Client-side: src/store/gitaStore.ts
+const fetchApi = async (endpoint: string, options: RequestInit = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    if (response.ok) return response;
-    throw new Error(`Vercel API failed with status: ${response.status}`);
-  } catch (error) {
-    // Fallback: Direct RapidAPI call
-    const response = await fetch(`${FALLBACK_API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`/api${endpoint}`, {
       ...options,
-      headers: {
-        'x-rapidapi-host': RAPIDAPI_HOST,
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        ...options.headers,
-      },
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json', ...options.headers },
     });
+    if (!response.ok) throw new Error(`API request failed with status: ${response.status}`);
     return response;
+  } finally {
+    clearTimeout(timeoutId);
   }
 };
 ```
 
-### **Vercel API Routes**
-
-For production deployment, we use Vercel serverless functions to handle CORS:
-
 ```javascript
-// api/chapters.js
-export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  const response = await fetch(`${process.env.RAPIDAPI_BASE_URL}/chapters/?skip=${skip}&limit=${limit}`, {
-    headers: {
-      'x-rapidapi-host': process.env.RAPIDAPI_HOST,
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-    },
+// Server-side: api/_handlers/chapters.js
+export default async function chaptersHandler(req, res) {
+  setCorsHeaders(res);
+  const { skip = '0', limit = '18' } = req.query;
+  const config = getRapidApiConfig(); // reads process.env.RAPIDAPI_*
+
+  const response = await fetch(`${config.rapidApiBaseUrl}/chapters/?skip=${skip}&limit=${limit}`, {
+    headers: rapidApiHeaders(config),
   });
-  
+
   const data = await response.json();
   res.status(200).json(data);
 }
 ```
 
-### **Development Proxy**
+### **Route Structure**
 
-For local development, Vite proxy handles CORS:
+Route files under `api/chapters/` use Vercel's bracket-folder convention to map URL params, and re-export the actual handler logic from `api/_handlers/` (files/folders prefixed with `_` aren't deployed as routes, and are what the Vitest suite imports directly since bracket paths can't be globbed by test runners):
 
-```typescript
-// vite.config.ts - Development Proxy
-server: {
-  proxy: {
-    '/api': {
-      target: 'https://bhagavad-gita3.p.rapidapi.com/v2',
-      changeOrigin: true,
-      rewrite: (path) => path.replace(/^\/api/, ''),
-      configure: (proxy) => {
-        proxy.on('proxyReq', (proxyReq) => {
-          proxyReq.setHeader('x-rapidapi-host', 'bhagavad-gita3.p.rapidapi.com');
-          proxyReq.setHeader('x-rapidapi-key', 'YOUR_API_KEY');
-        });
-      },
-    },
-  },
-}
+```
+api/
+  _lib/utils.js              # CORS headers, env validation, shared error response
+  _handlers/                 # actual handler logic (testable, no bracket paths)
+  chapters.js                 -> /api/chapters
+  chapters/[chapterId].js     -> /api/chapters/:chapterId
+  chapters/[chapterId]/verses.js                -> /api/chapters/:chapterId/verses
+  chapters/[chapterId]/verses/[verseNumber].js  -> /api/chapters/:chapterId/verses/:verseNumber
 ```
 
 ### **API Endpoints**
@@ -187,16 +165,16 @@ server: {
 #### 1. **All Chapters**
 
 ```bash
-GET /api/chapters/?skip=0&limit=18
+GET /api/chapters?skip=0&limit=18
 ```
 
 #### 2. **Specific Chapter**
 
 ```bash
-GET /api/chapters/{id}/
+GET /api/chapters/{id}
 ```
 
-#### 3. **Chapter Verses** (Ready)
+#### 3. **Chapter Verses**
 
 ```bash
 GET /api/chapters/{id}/verses
@@ -205,42 +183,7 @@ GET /api/chapters/{id}/verses
 #### 4. **Individual Verse**
 
 ```bash
-GET /api/chapters/{chapter}/verses/{verse}/
-```
-
-### **Error Handling & Reliability**
-
-The app implements comprehensive error handling:
-
-```typescript
-// Automatic fallback and timeout protection
-const fetchWithRetryAndFallback = async (endpoint, options, retries = 2, timeout = 10000) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    // Primary: Vercel API route
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      signal: controller.signal,
-    });
-    if (response.ok) return response;
-  } catch (error) {
-    // Fallback: Direct RapidAPI
-    const fallbackResponse = await fetch(`${FALLBACK_API_BASE_URL}${endpoint}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        'x-rapidapi-host': RAPIDAPI_HOST,
-        'x-rapidapi-key': RAPIDAPI_KEY,
-        ...options.headers,
-      },
-    });
-    return fallbackResponse;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
+GET /api/chapters/{chapter}/verses/{verse}
 ```
 
 ## 🚀 Quick Start
@@ -269,20 +212,16 @@ const fetchWithRetryAndFallback = async (endpoint, options, retries = 2, timeout
 3. **Configure Environment Variables**
 
    **For Development:**
-   Update the API key in `vite.config.ts`:
+   Copy `.env.example` to `.env.local` and fill in your RapidAPI credentials. Vite's dev proxy reads these at startup, so the key never appears in source:
 
-   ```typescript
-   proxyReq.setHeader('x-rapidapi-key', 'your-rapidapi-key-here');
+   ```env
+   RAPIDAPI_HOST=bhagavad-gita3.p.rapidapi.com
+   RAPIDAPI_KEY=your-rapidapi-key-here
+   RAPIDAPI_BASE_URL=https://bhagavad-gita3.p.rapidapi.com/v2
    ```
 
    **For Production (Vercel):**
-   Set environment variables in your Vercel dashboard or `.env`:
-
-   ```env
-   RAPIDAPI_KEY=your-rapidapi-key-here
-   RAPIDAPI_HOST=bhagavad-gita3.p.rapidapi.com
-   RAPIDAPI_BASE_URL=https://bhagavad-gita3.p.rapidapi.com/v2
-   ```
+   Set the same three variables in your Vercel project's Settings → Environment Variables. They're only read server-side by the functions in `api/`.
 
 4. **Start development server**
 
