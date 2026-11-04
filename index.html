@@ -3,31 +3,57 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      // Applies the saved or system theme before first paint; keep in sync with src/lib/theme.ts.
+      (function () {
+        var dark = false;
+        try {
+          var stored = localStorage.getItem("theme");
+          dark = stored
+            ? stored === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } catch (error) {}
+        var root = document.documentElement;
+        root.classList.toggle("dark", dark);
+        root.style.colorScheme = dark ? "dark" : "light";
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", dark ? "#020617" : "#ffffff");
+      })();
+    </script>
     <link rel="icon" href="/Bhagwat-Gita.png" />
-    <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="Read the Bhagavad Gita online — all 18 chapters and 700 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
+      content="Read the Bhagavad Gita online — all 18 chapters and 701 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
     />
+    <link rel="canonical" href="https://bhagwat-gita-iota.vercel.app/" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>Shrimad Bhagavad Gita</title>
 
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bhagwat-gita-iota.vercel.app/" />
     <meta property="og:title" content="Shrimad Bhagavad Gita" />
     <meta
       property="og:description"
-      content="Read the Bhagavad Gita online — all 18 chapters and 700 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
+      content="Read the Bhagavad Gita online — all 18 chapters and 701 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
     />
-    <meta property="og:image" content="/Bhagwat-Gita.png" />
+    <meta
+      property="og:image"
+      content="https://bhagwat-gita-iota.vercel.app/Bhagwat-Gita.png"
+    />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Shrimad Bhagavad Gita" />
     <meta
       name="twitter:description"
-      content="Read the Bhagavad Gita online — all 18 chapters and 700 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
+      content="Read the Bhagavad Gita online — all 18 chapters and 701 verses with Sanskrit text, transliteration, word meanings, translations, and commentaries."
     />
-    <meta name="twitter:image" content="/Bhagwat-Gita.png" />
+    <meta
+      name="twitter:image"
+      content="https://bhagwat-gita-iota.vercel.app/Bhagwat-Gita.png"
+    />
   </head>
   <body>
     <div id="app"></div>

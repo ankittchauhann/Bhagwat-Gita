@@ -5,25 +5,25 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import type { Chapter } from "@/store/gitaStore";
+import type { ChapterInfo } from "@/lib/gitaData";
 
-export function ChapterSummaryCard({ chapter }: { chapter: Chapter }) {
+export function ChapterSummaryCard({ chapter }: { chapter: ChapterInfo }) {
 	return (
-		<Card
-			className="bg-white/70 backdrop-blur-sm border-0 shadow-lg"
-			style={{ contain: "layout style paint" }}
-		>
+		<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 			<CardHeader>
-				<CardTitle className="text-xl text-orange-700 font-sanskrit">
+				<CardTitle
+					lang="sa"
+					className="text-xl text-orange-700 dark:text-orange-300 font-sanskrit"
+				>
 					{chapter.name}
 				</CardTitle>
 				<CardDescription className="text-base">
-					{chapter.name_meaning} - {chapter.name_transliterated}
+					{chapter.nameMeaning} - {chapter.nameTransliterated}
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<p className="text-slate-700 leading-relaxed">
-					{chapter.chapter_summary}
+				<p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+					{chapter.summary}
 				</p>
 			</CardContent>
 		</Card>

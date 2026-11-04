@@ -3,10 +3,11 @@ node_modules
 dist
 dist-ssr
 *.local
-count.txt
 .env
 .nitro
 .tanstack
+test-results/
+playwright-report/
 
 CLAUDE.local.md
 .claude/settings.local.json

@@ -15,7 +15,7 @@ export function VerseNavigationControls({
 		<div className="pt-4">
 			{/* Mobile Layout - Stacked */}
 			<div className="flex flex-col space-y-3 sm:hidden">
-				<span className="text-sm text-slate-500 text-center">
+				<span className="text-sm text-slate-600 dark:text-slate-300 text-center">
 					{selectedVerse} of {versesCount}
 				</span>
 				<div className="flex space-x-3">
@@ -50,7 +50,7 @@ export function VerseNavigationControls({
 				>
 					← Previous Verse
 				</Button>
-				<span className="text-sm text-slate-500">
+				<span className="text-sm text-slate-600 dark:text-slate-300">
 					{selectedVerse} of {versesCount}
 				</span>
 				<Button

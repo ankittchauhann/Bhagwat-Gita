@@ -11,7 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ChapterChapterIdRouteImport } from './routes/chapter.$chapterId'
+import { Route as ChapterChapterIdIndexRouteImport } from './routes/chapter.$chapterId.index'
+import { Route as ChapterChapterIdVerseVerseNumberRouteImport } from './routes/chapter.$chapterId.verse.$verseNumber'
 
 const ChaptersRoute = ChaptersRouteImport.update({
   id: '/chapters',
@@ -23,40 +24,63 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChapterChapterIdRoute = ChapterChapterIdRouteImport.update({
-  id: '/chapter/$chapterId',
-  path: '/chapter/$chapterId',
+const ChapterChapterIdIndexRoute = ChapterChapterIdIndexRouteImport.update({
+  id: '/chapter/$chapterId/',
+  path: '/chapter/$chapterId/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChapterChapterIdVerseVerseNumberRoute =
+  ChapterChapterIdVerseVerseNumberRouteImport.update({
+    id: '/chapter/$chapterId/verse/$verseNumber',
+    path: '/chapter/$chapterId/verse/$verseNumber',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chapters': typeof ChaptersRoute
-  '/chapter/$chapterId': typeof ChapterChapterIdRoute
+  '/chapter/$chapterId': typeof ChapterChapterIdIndexRoute
+  '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chapters': typeof ChaptersRoute
-  '/chapter/$chapterId': typeof ChapterChapterIdRoute
+  '/chapter/$chapterId': typeof ChapterChapterIdIndexRoute
+  '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chapters': typeof ChaptersRoute
-  '/chapter/$chapterId': typeof ChapterChapterIdRoute
+  '/chapter/$chapterId/': typeof ChapterChapterIdIndexRoute
+  '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chapters' | '/chapter/$chapterId'
+  fullPaths:
+    | '/'
+    | '/chapters'
+    | '/chapter/$chapterId'
+    | '/chapter/$chapterId/verse/$verseNumber'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chapters' | '/chapter/$chapterId'
-  id: '__root__' | '/' | '/chapters' | '/chapter/$chapterId'
+  to:
+    | '/'
+    | '/chapters'
+    | '/chapter/$chapterId'
+    | '/chapter/$chapterId/verse/$verseNumber'
+  id:
+    | '__root__'
+    | '/'
+    | '/chapters'
+    | '/chapter/$chapterId/'
+    | '/chapter/$chapterId/verse/$verseNumber'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChaptersRoute: typeof ChaptersRoute
-  ChapterChapterIdRoute: typeof ChapterChapterIdRoute
+  ChapterChapterIdIndexRoute: typeof ChapterChapterIdIndexRoute
+  ChapterChapterIdVerseVerseNumberRoute: typeof ChapterChapterIdVerseVerseNumberRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +99,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chapter/$chapterId': {
-      id: '/chapter/$chapterId'
+    '/chapter/$chapterId/': {
+      id: '/chapter/$chapterId/'
       path: '/chapter/$chapterId'
       fullPath: '/chapter/$chapterId'
-      preLoaderRoute: typeof ChapterChapterIdRouteImport
+      preLoaderRoute: typeof ChapterChapterIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chapter/$chapterId/verse/$verseNumber': {
+      id: '/chapter/$chapterId/verse/$verseNumber'
+      path: '/chapter/$chapterId/verse/$verseNumber'
+      fullPath: '/chapter/$chapterId/verse/$verseNumber'
+      preLoaderRoute: typeof ChapterChapterIdVerseVerseNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +119,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChaptersRoute: ChaptersRoute,
-  ChapterChapterIdRoute: ChapterChapterIdRoute,
+  ChapterChapterIdIndexRoute: ChapterChapterIdIndexRoute,
+  ChapterChapterIdVerseVerseNumberRoute: ChapterChapterIdVerseVerseNumberRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
