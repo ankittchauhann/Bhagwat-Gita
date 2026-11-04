@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	DATA_VERSION,
 	DataLoadError,
 	clearDataCache,
 	loadChapter,
@@ -51,7 +52,9 @@ describe("loadChapter", () => {
 		const second = await loadChapter(2);
 
 		expect(fetchMock).toHaveBeenCalledTimes(1);
-		expect(fetchMock).toHaveBeenCalledWith("/data/v1/chapter/2.json");
+		expect(fetchMock).toHaveBeenCalledWith(
+			`/data/${DATA_VERSION}/chapter/2.json`,
+		);
 		expect(second).toBe(first);
 	});
 

@@ -1,58 +1,64 @@
-import { Slot } from "@radix-ui/react-slot";
-import { type VariantProps, cva } from "class-variance-authority";
-import * as React from "react";
-
 import { cn } from "@/lib/utils";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300",
-	{
-		variants: {
-			variant: {
-				default:
-					"bg-slate-900 text-slate-50 hover:bg-slate-900/90 dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-50/90",
-				destructive:
-					"bg-red-500 text-slate-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-slate-50 dark:hover:bg-red-900/90",
-				outline:
-					"border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-				secondary:
-					"bg-slate-100 text-slate-900 hover:bg-slate-100/80 dark:bg-slate-800 dark:text-slate-50 dark:hover:bg-slate-800/80",
-				ghost:
-					"hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-50",
-				link: "text-slate-900 underline-offset-4 hover:underline dark:text-slate-50",
-			},
-			size: {
-				default: "h-10 px-4 py-2",
-				sm: "h-9 rounded-md px-3",
-				lg: "h-11 rounded-md px-8",
-				icon: "h-10 w-10",
-			},
-		},
-		defaultVariants: {
-			variant: "default",
-			size: "default",
-		},
-	},
-);
+type Variant = "primary" | "secondary" | "quiet";
 
-export interface ButtonProps
-	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-		VariantProps<typeof buttonVariants> {
-	asChild?: boolean;
+const VARIANTS: Record<Variant, string> = {
+	primary: "bg-ink text-ground hover:opacity-90",
+	secondary: "bg-surface text-ink hover:bg-rule",
+	quiet: "text-ink hover:bg-surface",
+};
+
+export function buttonClass(
+	variant: Variant = "secondary",
+	className?: string,
+) {
+	return cn(
+		"inline-flex min-h-11 items-center justify-center gap-2 rounded-[6px] px-4 text-[15px] font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:size-5 [&_svg]:shrink-0",
+		VARIANTS[variant],
+		className,
+	);
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, asChild = false, ...props }, ref) => {
-		const Comp = asChild ? Slot : "button";
-		return (
-			<Comp
-				className={cn(buttonVariants({ variant, size, className }))}
-				ref={ref}
-				{...props}
-			/>
-		);
-	},
-);
-Button.displayName = "Button";
+export function Button({
+	variant,
+	className,
+	type = "button",
+	...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
+	return (
+		<button
+			type={type}
+			className={buttonClass(variant, className)}
+			{...props}
+		/>
+	);
+}
 
-export { Button, buttonVariants };
+export function iconButtonClass(className?: string) {
+	return cn(
+		"inline-flex size-11 shrink-0 items-center justify-center rounded-[6px] text-ink transition-colors hover:bg-surface [&_svg]:size-5",
+		className,
+	);
+}
+
+export function IconButton({
+	label,
+	children,
+	className,
+	...props
+}: Omit<ButtonHTMLAttributes<HTMLButtonElement>, "aria-label"> & {
+	label: string;
+	children: ReactNode;
+}) {
+	return (
+		<button
+			type="button"
+			aria-label={label}
+			className={iconButtonClass(className)}
+			{...props}
+		>
+			{children}
+		</button>
+	);
+}

@@ -1,16 +1,14 @@
 import {
 	loadChapter,
+	loadChapters,
 	parseChapterNumber,
 	parseVerseNumber,
 } from "@/lib/gitaData";
 import { SITE_TITLE } from "@/lib/site";
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { ChapterPage } from "../components/ChapterPage";
-import {
-	NotFoundPage,
-	PageLoading,
-	RouteError,
-} from "../components/RouteStatus";
+import { NotFoundPage, RouteError } from "../components/RouteStatus";
+import { ReaderPage } from "../components/reader/ReaderPage";
+import { ReaderSkeleton } from "../components/reader/ReaderSkeleton";
 
 export const Route = createFileRoute("/chapter/$chapterId/verse/$verseNumber")({
 	loader: async ({ params }) => {
@@ -19,7 +17,10 @@ export const Route = createFileRoute("/chapter/$chapterId/verse/$verseNumber")({
 			throw notFound();
 		}
 
-		const chapterFile = await loadChapter(chapterNumber);
+		const [chapterFile, { chapters }] = await Promise.all([
+			loadChapter(chapterNumber),
+			loadChapters(),
+		]);
 		const verseNumber = parseVerseNumber(
 			params.verseNumber,
 			chapterFile.chapter.versesCount,
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/chapter/$chapterId/verse/$verseNumber")({
 			throw notFound();
 		}
 
-		return { chapterFile, verseNumber };
+		return { chapterFile, verseNumber, chapters };
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) {
@@ -48,8 +49,8 @@ export const Route = createFileRoute("/chapter/$chapterId/verse/$verseNumber")({
 			],
 		};
 	},
-	pendingComponent: () => <PageLoading label="Loading chapter…" />,
+	pendingComponent: ReaderSkeleton,
 	errorComponent: RouteError,
 	notFoundComponent: NotFoundPage,
-	component: ChapterPage,
+	component: ReaderPage,
 });

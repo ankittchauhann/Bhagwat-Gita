@@ -1,11 +1,13 @@
-import type {
-	Author,
-	ChapterFile,
-	ChapterInfo,
-	ChaptersIndex,
-	Language,
-	Verse,
-	VerseCommentary,
+import {
+	type Author,
+	type ChapterFile,
+	type ChapterInfo,
+	type ChaptersIndex,
+	type Language,
+	SPEAKERS,
+	type Speaker,
+	type Verse,
+	type VerseCommentary,
 } from "../src/lib/gitaData";
 
 export const SOURCE_REPOSITORY = "https://github.com/gita/gita";
@@ -16,8 +18,20 @@ export const EXPECTED_VERSES = 701;
 export const EXPECTED_TRANSLATIONS_PER_VERSE = 7;
 
 const LANGUAGE_ORDER: Language[] = ["english", "hindi", "sanskrit"];
-const SPEAKER_LINE = /^(?:अर्जुन|सञ्जय|संजय|धृतराष्ट्र)\s*उवाच/;
+const SPEAKER_LINE = /^(?:(?:अर्जुन|सञ्जय|संजय|धृतराष्ट्र)\s*उवाच|श्री\s*भगवानुवाच)/;
+const TRANSLITERATED_SPEAKER_LINE =
+	/^(?:śhrī[-\s]bhagavān|arjuna|sañjaya|dhṛitarāśhtra)\s+uvācha$/;
 const VERSE_REFERENCE = /[।॥]{1,2}\s*(\d+)\.(\d+)\s*[।॥]{1,2}$/;
+const LEADING_REFERENCE = /^[।॥]{1,2}\s*\d+\.\d+\s*[।॥]{1,2}\s*/;
+const SINGLE_DANDA = /(?<!।)।(?!।)\s*/g;
+
+const SPEAKER_PREFIXES: [string, Speaker][] = [
+	["श्री", "krishna"],
+	["अर्जुन", "arjuna"],
+	["सञ्जय", "sanjaya"],
+	["संजय", "sanjaya"],
+	["धृतराष्ट्र", "dhritarashtra"],
+];
 
 export interface SourceChapter {
 	chapter_number: number;
@@ -79,7 +93,37 @@ export function splitSpeaker(text: string): {
 
 	const rest = lines[0].slice(match[0].length).trim();
 	const body = rest ? [rest, ...lines.slice(1)] : lines.slice(1);
-	return { speaker: match[0], text: body.join("\n") };
+	return { speaker: match[0].replace("संजय", "सञ्जय"), text: body.join("\n") };
+}
+
+export function speakerOf(speakerLine: string): Speaker | null {
+	return (
+		SPEAKER_PREFIXES.find(([prefix]) => speakerLine.startsWith(prefix))?.[1] ??
+		null
+	);
+}
+
+// Half-verses are separated by a line break in most of the source and only by a single danda from chapter 12 on.
+export function verseLines(text: string): string[] {
+	return text
+		.replace(VERSE_REFERENCE, "")
+		.replace(SINGLE_DANDA, "।\n")
+		.split("\n")
+		.map((line) => line.trim())
+		.filter(Boolean);
+}
+
+export function splitTransliteration(text: string): {
+	speaker: string | null;
+	lines: string[];
+} {
+	const lines = text
+		.split("\n")
+		.map((line) => line.replace(/\s+/g, " ").trim())
+		.filter(Boolean);
+	return TRANSLITERATED_SPEAKER_LINE.test(lines[0] ?? "")
+		? { speaker: lines[0], lines: lines.slice(1) }
+		: { speaker: null, lines };
 }
 
 export function verseReference(
@@ -165,6 +209,7 @@ export function buildData(source: SourceData): {
 
 	const chapterFiles: ChapterFile[] = [];
 	const commentary = new Map<string, VerseCommentary>();
+	let currentSpeaker: Speaker | null = null;
 
 	for (const chapter of chapters) {
 		const sourceVerses = source.verses
@@ -184,7 +229,8 @@ export function buildData(source: SourceData): {
 
 			const translations: Record<string, string> = {};
 			for (const record of translationsByVerse.get(sourceVerse.id) ?? []) {
-				const text = record.description?.trim() ?? "";
+				const text =
+					record.description?.trim().replace(LEADING_REFERENCE, "") ?? "";
 				if (!text) {
 					errors.push(`${label}: empty translation by ${record.authorName}`);
 				} else if (translations[record.author_id]) {
@@ -229,18 +275,44 @@ export function buildData(source: SourceData): {
 				),
 			);
 
-			const { speaker, text } = splitSpeaker(sourceVerse.text);
-			const transliteration = sourceVerse.transliteration?.trim() ?? "";
+			const { speaker: speakerLine, text } = splitSpeaker(sourceVerse.text);
+			const transliteration = splitTransliteration(
+				sourceVerse.transliteration ?? "",
+			);
 			const wordMeanings = sourceVerse.word_meanings?.trim() ?? "";
-			if (!text) errors.push(`${label}: empty Sanskrit text`);
-			if (!transliteration) errors.push(`${label}: empty transliteration`);
+			const lines = verseLines(text);
+			if (lines.length === 0) errors.push(`${label}: empty Sanskrit text`);
+			if (transliteration.lines.length === 0) {
+				errors.push(`${label}: empty transliteration`);
+			}
 			if (!wordMeanings) errors.push(`${label}: empty word meanings`);
+			if (Boolean(speakerLine) !== Boolean(transliteration.speaker)) {
+				errors.push(
+					`${label}: speaker line in only one of Sanskrit and transliteration`,
+				);
+			}
+
+			if (speakerLine) {
+				currentSpeaker = speakerOf(speakerLine);
+				if (!currentSpeaker) {
+					errors.push(`${label}: unknown speaker "${speakerLine}"`);
+				}
+			} else if (sourceVerse.verse_number === 1) {
+				errors.push(`${label}: a chapter must open with a speaker line`);
+			}
 
 			return {
 				number: sourceVerse.verse_number,
-				speaker,
-				text,
-				transliteration,
+				speaker: currentSpeaker ?? "sanjaya",
+				speakerLine:
+					speakerLine && transliteration.speaker
+						? {
+								sanskrit: speakerLine,
+								transliteration: transliteration.speaker,
+							}
+						: null,
+				lines,
+				transliteration: transliteration.lines,
 				wordMeanings,
 				translations: Object.fromEntries(
 					translators
@@ -328,11 +400,24 @@ export function validateBuiltData(data: BuiltData): string[] {
 			if (verse.number !== index + 1) {
 				errors.push(`${label}: expected verse number ${index + 1}`);
 			}
-			if (!verse.text || !verse.transliteration || !verse.wordMeanings) {
+			if (
+				verse.lines.length === 0 ||
+				verse.transliteration.length === 0 ||
+				!verse.wordMeanings
+			) {
 				errors.push(`${label}: missing text`);
 			}
-			if (verse.text && SPEAKER_LINE.test(verse.text)) {
+			if (verse.lines.some((line) => SPEAKER_LINE.test(line))) {
 				errors.push(`${label}: speaker line left in the Sanskrit text`);
+			}
+			if (verse.lines.some((line) => /[।॥]\s*\d+\.\d+/.test(line))) {
+				errors.push(`${label}: verse reference left in the Sanskrit text`);
+			}
+			if (!SPEAKERS.includes(verse.speaker)) {
+				errors.push(`${label}: unknown speaker "${verse.speaker}"`);
+			}
+			if (verse.number === 1 && !verse.speakerLine) {
+				errors.push(`${label}: a chapter must open with a speaker line`);
 			}
 			const keys = Object.keys(verse.translations);
 			if (
@@ -340,6 +425,13 @@ export function validateBuiltData(data: BuiltData): string[] {
 				translatorIds.some((id) => !verse.translations[id])
 			) {
 				errors.push(`${label}: translations do not cover every translator`);
+			}
+			if (
+				Object.values(verse.translations).some((text) =>
+					LEADING_REFERENCE.test(text),
+				)
+			) {
+				errors.push(`${label}: translation starts with a verse reference`);
 			}
 			if (verse.commentators.some((id) => !commentatorIds.has(id))) {
 				errors.push(`${label}: unknown commentator`);

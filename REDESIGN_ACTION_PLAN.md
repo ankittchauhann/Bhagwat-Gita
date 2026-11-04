@@ -145,6 +145,8 @@ Top three problems:
 | B11 | **Text-to-speech problems** | `alert()` (`useTextToSpeech.ts:47`). The "Sanskrit" option reads the Roman transliteration with a Hindi voice (`VerseDisplay.tsx:74-78`) | Web Speech workaround |
 | B12 | **An empty section shows an apology** | "Word meanings not available…" paragraph (`VerseDisplay.tsx:230-233`) | Should hide the section instead |
 | B13 | **Opening a verse directly wipes saved reading history** (found during Phase 1) | Seeded 3 history entries and 3 read verses, then opened `/chapter/2?verse=47` directly: both were reduced to the single verse 2.47 | The store started empty and loaded `localStorage` only on the home page, so the verse page saved over the stored data |
+| B14 | **A quick second step while the next chapter loads skips a verse** (found during Phase 2) | With chapter 2's file delayed by 1.5 s: on 1.47, → then ← landed on 1.46 instead of returning to 1.47 | The URL changes at once, but the old verse stays on screen until the new chapter arrives, and the second step was counted from it |
+| B15 | **Every page downloads a 1.2 MB favicon, and the iOS home-screen icon is the React logo** (found during Phase 2) | Lighthouse: `/Bhagwat-Gita.png` 1,224 KB on the reader's first load; `logo192.png`, `logo512.png` and `favicon.ico` are the Create React App images | `index.html` pointed the icon at the 1024px artwork and the apple-touch-icon at the template file |
 
 Checked and fine: the router devtools render only in development, and `readingHistoryStore` serialises its `Set` correctly.
 
@@ -153,8 +155,11 @@ Checked and fine: the router devtools render only in development, and `readingHi
 | Issue | Detail | Handling |
 | --- | --- | --- |
 | Verse count | The data has **701** verses; chapter 13 has 35 because 13.1 is Arjuna's question, which some editions omit. The home page says "700 Verses" | Use 701 everywhere and explain it on About |
-| Missing speaker lines | Krishna's "śrī bhagavān uvāca" lines are **absent** from the Sanskrit text | Curated speaker table (§8.1) |
-| Speaker lines run into verses | No line break in **12.1, 14.21, 17.1, 18.73 and 18.74** | Split at build time |
+| Speaker lines | **Corrected in Phase 2:** Krishna's lines are present, as "श्री भगवानुवाच" in 28 verses; the Phase 0 check searched for "उवाच" and missed the sandhi form. Every change of speaker is marked, 60 in all, and every chapter opens with one | Lift the line out at build time and carry the speaker forward (§8.1) |
+| Speaker lines run into verses | No line break in **12.1, 12.2, 13.2, 14.1, 14.21, 14.22, 15.1, 17.1, 17.2, 18.73 and 18.74** | Split at build time |
+| Half-verses on one line | From 12.1 on, **222 verses** separate their half-verses with a single danda and no line break | Split at the single danda at build time |
+| Mixed-speaker verses | 1.21 and 1.28 open with Sanjaya's narration, but the source puts Arjuna's speaker line first; the translations also open with "Arjuna said" | Follow the source: both count as Arjuna's. Hence Arjuna 86 and Sanjaya 40, against the traditional 84 (85 with 13.1) and 41 |
+| Other source quirks | 11.19's transliteration is in Devanagari; 4 verses' word meanings are not in "term—meaning" form; some transliterations contain runs of spaces | Tag 11.19 `lang="sa"`; show those 4 word meanings as plain text; collapse the spaces |
 | Inconsistent spelling | "Sanjaya" is spelled सञ्जय 8 times and संजय once | Normalise at build time |
 | Inline verse references | The text ends with `।।2.47।।`, written as two single dandas (U+0964) instead of ॥ (U+0965). Half-verses are separated by a blank line, which renders a gap mid-verse | Render the marker separately and drop the blank line. This is display only (§11) |
 | Unused content | Hindi chapter summaries (`chapter_summary_hindi`) are in the dataset but not shown | Show them on the chapter page |
@@ -496,7 +501,8 @@ On phones, navigation is a top bar with the title, Search and Menu; the menu she
   - `public/data/v1/commentary/{c}/{v}.json`, keyed by author ID and loaded only when Commentary is opened. 7.1 KiB gzip median, 62.2 KiB maximum.
   - `public/data/v1/credits.json`, built from `authors.json`.
   - `public/data/v1/search-index.json` (Phase 5).
-  - `src/data/speakers.ts`: a hand-checked table of speaker ranges, because Krishna's lines are missing from the source.
+  - **Speakers (Phase 2, as built):** no separate table is needed, because the source marks every change of speaker (§3.4). The build carries the speaker forward from each "… उवाच" line, and `scripts/gita-data.test.ts` pins all 60 speech openings and the totals (Krishna 574, Arjuna 86, Sanjaya 40, Dhritarashtra 1), checked by hand against the printed text.
+  - **Phase 2 moved the data to `public/data/v2/`**, because the verse format changed and `v1` files are cached as immutable.
 - **Normalisation.** Display only; the wording is never changed.
   - Split each verse into half-verse lines and drop the blank lines.
   - Lift the trailing `।।c.v।।` into a separate field for the rubric marker.
@@ -508,7 +514,7 @@ On phones, navigation is a top bar with the title, Search and Menu; the menu she
   - Each chapter's verse count equals `verses_count`.
   - Each verse has 7 translations.
   - No Sanskrit text is empty.
-  - The speaker table covers all 701 verses.
+  - Every chapter opens with a speaker line, so all 701 verses have a speaker.
 
 ### 8.2 Routing and loading (TanStack Router; installed 1.130.12)
 
@@ -669,19 +675,43 @@ graph LR
 
 ### Phase 2: Design system and reader (L)
 
-- [ ] Add the §6.2 tokens and the §6.3 fonts, and remove the gradients, glass, emoji and shadows.
-- [ ] Build the base components: button, icon button, sheet, disclosure, segmented control, toggle, verse grid.
-- [ ] Build the reader (§6.6 A) and the settings sheet (§6.6 E); remove `speak-tts` and the badge panel.
-- [ ] Add `lang` attributes, `viewport-fit=cover` with safe areas, motion with the reduced-motion fallback, swipe, and live regions.
+**Status: done** on branch `feature/reader-redesign`.
 
-**Done when:**
+- [x] Add the §6.2 tokens and the §6.3 fonts, and remove the gradients, glass, emoji and shadows. The home and chapter-list pages were moved onto the tokens too, so the app stays consistent until Phase 3 rebuilds them: the "Namaste" button became "Start reading" or "Continue at 2.47", the icon cards and emoji went, the chapters became rows, and the home quote now comes from the dataset with its translator named.
+- [x] Build the base components: button, icon button, sheet, disclosure, segmented control, toggle (switch), radio list, verse grid. The sheet is a native modal `<dialog>`: it makes the page behind inert, closes on Esc and returns focus to the button that opened it.
+- [x] Build the reader (§6.6 A) and the settings sheet (§6.6 E); remove `speak-tts` and the badge panel (fixes B11). The data moved to `v2` with half-verse lines, the speaker of every verse and the reference split out (§3.4, §8.1).
+- [x] Add `lang` attributes, `viewport-fit=cover` with safe areas, motion with the reduced-motion fallback, swipe, and live regions.
+- [x] Also fixed: B14 (a step during a chapter load counted from the old verse; input is now ignored while a chapter loads, and the neighbouring chapter is fetched in advance at a chapter's edge) and B15 (the 1.2 MB favicon and the React template icons).
+- [x] Removed with the old reader: Radix Select and Slot, class-variance-authority, tw-animate-css, Noto Sans Devanagari, `speak-tts`, and the unused `useNetworkStatus` hook.
 
-- `inspect.mjs --app` shows 0 FAIL on the reader at 1440, 768 and 390.
-- `lint.mjs` shows 0 FAIL on the changed files.
-- axe reports 0 violations.
-- At 390×844 the verse is inside the first screen.
-- A keyboard-only run-through passes.
-- Lighthouse Accessibility is 100.
+**Done when** (results):
+
+- `inspect.mjs --app` on the reader at 1440, 768 and 390: **0 FAIL**, run with `--allow headline-lines`. The inspector takes the largest text on the first screen to be the headline whatever its tag, and here that is the Sanskrit verse: a `<p>` of two half-verses at 24px that wraps to four lines on a phone. §6.6 A makes the verse the largest thing on purpose, with an `h1` of 20px. One WARN, `font-count` (three faces): Tiro is there only because neither Latin face has Devanagari (§6.3).
+- `lint.mjs --app` on `src/components`, `src/styles.css` and `index.html`: **0 FAIL**. Two WARNs: the sheet's shadow, which floats and so is allowed; and em dashes, which are the dataset's own "term—meaning" format plus the existing meta description.
+- axe (WCAG 2.0–2.2 A and AA): **0 violations** on home, chapters, the reader with every section open, the settings sheet, the verse grid and the 404 page, in light and dark (`e2e/accessibility.spec.ts`).
+- At 390×844 the whole Sanskrit verse sits above the bottom bar (end-to-end test).
+- Keyboard-only run-through passes. It covers the tab order, opening and closing the settings sheet, focus kept inside the sheet and returned to its opener, and Enter on "Next" keeping focus there for the next press.
+- Lighthouse mobile on the production build (`vite preview`, simulated slow 4G): **Accessibility 100**, Best Practices 100 and SEO 100 on `/`, `/chapters` and `/chapter/2/verse/47`.
+- Tests: Vitest 41/41, Playwright 70 passed (2 skipped by design: swipe on desktop, the keyboard run on the phone).
+
+**Measured, outside the gates:**
+
+| Item | Result | Target |
+| --- | --- | --- |
+| Reader route JS (gzip) | 98.6 kB main + 6.4 kB route = **105 kB** | ≤ 110 kB ✓ |
+| CSS (gzip) | **7.9 kB** | ≤ 15 kB ✓ |
+| Fonts on the reader's first load | **353 kB**: Tiro Devanagari Sanskrit 180, Source Serif 4 roman and italic with Latin Extended for IAST 144, Libre Franklin 29 | ≤ 200 kB ✗. Tiro's Devanagari file alone is 180 kB. Options for Phase 6: subset Tiro to the glyphs the 701 verses use, or set IAST in roman instead of italic (saves 95 kB) |
+| Lighthouse Performance, reader | **76** (LCP 4.4 s, TBT 30 ms, CLS 0); it was 65 (LCP 10.7 s) before the B15 fix | ≥ 90, a launch target. Prerendering (Phase 6) removes the wait for JavaScript and data before the first paint |
+
+**Deviations from §6.6, each deliberate:**
+
+- **Focus on verse change** stays on the control that was used, instead of moving to the `h1`. A live region announces "Chapter 2, verse 48". This way Enter on "Next" can be pressed again, and the screen reader is not told twice.
+- **Settings** is one sheet at every width; on desktop it is a centred panel rather than a `/settings` route.
+- **Default commentator** is chosen in the Commentary section's own picker, which is remembered, rather than duplicated in the settings sheet.
+- **Translations:** the English translator shows under the verse. The Hindi translation section shows one chosen Hindi translator, picked by name in the settings sheet, like the commentary.
+- **Clearing reading history** moves to Phase 5, together with saved verses and progress.
+- **Save, Share and Copy** stay in Phase 5, as planned.
+- **Speaker label** reads "Krishna said" rather than "Sri Bhagavan said"; the Sanskrit "श्री भगवानुवाच" line is shown on the first verse of each of his speeches.
 
 ### Phase 3: Chapter list, chapter page, home, about (L)
 
