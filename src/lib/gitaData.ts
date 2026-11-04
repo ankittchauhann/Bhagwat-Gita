@@ -1,8 +1,16 @@
-export const DATA_VERSION = "v1";
+export const DATA_VERSION = "v2";
 
 const DATA_BASE_URL = `/data/${DATA_VERSION}`;
 
 export type Language = "english" | "hindi" | "sanskrit";
+
+export const SPEAKERS = [
+	"krishna",
+	"arjuna",
+	"sanjaya",
+	"dhritarashtra",
+] as const;
+export type Speaker = (typeof SPEAKERS)[number];
 
 export interface Author {
 	id: number;
@@ -28,9 +36,11 @@ export interface ChaptersIndex {
 
 export interface Verse {
 	number: number;
-	speaker: string | null;
-	text: string;
-	transliteration: string;
+	speaker: Speaker;
+	// The "… uvāca" line that opens a speech, present only on its first verse.
+	speakerLine: { sanskrit: string; transliteration: string } | null;
+	lines: string[];
+	transliteration: string[];
 	wordMeanings: string;
 	translations: Record<string, string>;
 	commentators: number[];

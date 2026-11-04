@@ -9,7 +9,7 @@ Pushing to `main` deploys automatically. `vercel.json` does two things:
 - rewrites every path except `/data/*` to `/index.html`, so links such as `/chapter/2/verse/47` open the app;
 - serves `/data/*` with `Cache-Control: public, max-age=31536000, immutable`.
 
-Because data files are cached for a year, change the folder name and `DATA_VERSION` in `src/lib/gitaData.ts` (for example `v1` → `v2`) whenever `bun run data` produces different files.
+Because data files are cached for a year, change the folder name and `DATA_VERSION` in `src/lib/gitaData.ts` (for example `v2` → `v3`) whenever `bun run data` produces different files.
 
 ## One-time cleanup after the RapidAPI removal
 
@@ -26,7 +26,7 @@ After deployment, these should all load:
 - `https://bhagwat-gita-iota.vercel.app/chapters`
 - `https://bhagwat-gita-iota.vercel.app/chapter/2/verse/47`
 - `https://bhagwat-gita-iota.vercel.app/chapter/2?verse=47` (redirects to the line above)
-- `https://bhagwat-gita-iota.vercel.app/data/v1/chapter/2.json`
+- `https://bhagwat-gita-iota.vercel.app/data/v2/chapter/2.json`
 - `https://bhagwat-gita-iota.vercel.app/sitemap.xml`
 
 and `https://bhagwat-gita-iota.vercel.app/chapter/99` should show the "Page not found" page.

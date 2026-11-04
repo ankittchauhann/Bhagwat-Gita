@@ -8,40 +8,33 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 
 ## ✨ Features
 
-### 🏛️ **Sacred Dashboard Experience**
+### 🏛️ **Home**
 
-- **Spiritual Welcome**: Beautiful Sanskrit greeting with "Namaste" to begin your journey
-- **Divine Aesthetics**: Gradient backgrounds inspired by traditional Indian art (oranges, reds, golds)  
-- **Sacred Typography**: Authentic Devanagari fonts (Noto Sans Devanagari, Mangal)
-- **Interactive Journey**: Feature cards showcasing app capabilities
-- **Inspirational Content**: Random sacred verse quotes with translations
-- **Theme Toggle**: Dark/Light mode support for comfortable reading
+- **Start or continue**: "Start reading" on a first visit, "Continue at 2.47" afterwards, plus a list of recently read verses
+- **A verse to begin with**: one of eight well-known verses, shown from the dataset with its translator named
+- **Theme**: follows the system setting, or Light or Dark when chosen
 
-### � **Comprehensive Chapter Navigation**
+### 📖 **Chapter list**
 
-- **All 18 Chapters**: Complete Bhagavad Gita with real API integration
-- **Smart Search**: Real-time filtering across Sanskrit names, transliterations, and meanings
-- **Rich Chapter Cards**:
-  - Sanskrit names with proper Devanagari rendering
-  - Roman transliteration for pronunciation guidance  
-  - English translations and spiritual meanings
-  - Verse counts and detailed chapter summaries
-- **Bundled Data**: Every chapter ships with the app; nothing depends on a third-party API
+- **All 18 chapters** as compact rows: number, Sanskrit name, English name and meaning, verse count
+- **Search** across Sanskrit names, transliterations and meanings
+- **Bundled data**: every chapter ships with the app; nothing depends on a third-party API
 
-### 🎯 **Immersive Chapter Experience**
+### 🎯 **Verse reader** (built phone first)
 
-- **Comprehensive Verse Display**: Every verse has its own address, e.g. `/chapter/2/verse/47`
-- **Intelligent Navigation**:
-  - Sticky header with chapter context
-  - Scrollable sidebar with all verses for instant access
-  - Previous/Next verse navigation, plus the ← and → keys
-  - Moving between verses needs no network request once a chapter has loaded
-- **Rich Content Presentation**:
-  - **Sanskrit Verses**: Authentic Devanagari with proper line breaks
-  - **Multiple English Translations**: 5 English translators; your choice is remembered across verses and visits
-  - **Hindi Translations**: 2 Hindi translations on every verse
-  - **Scholarly Commentaries**: 16 commentators (English, Hindi and Sanskrit), loaded only when you open them
-  - **Text to Speech**: Read the Hindi or English translation, or the transliteration, aloud
+- **One verse per screen**, at its own address, e.g. `/chapter/2/verse/47`
+- **The verse first**: the Sanskrit set in Tiro Devanagari Sanskrit, half-verse by half-verse, closed by a red ॥ २.४७ ॥ marker as in manuscripts; the speaker ("Krishna said") on every verse
+- **Moving around**:
+  - A bottom bar with the previous and next verse, crossing chapter boundaries (2.72 → 3.1)
+  - Swipe left or right on a phone, or use the ← and → keys
+  - "47 of 72" opens a grid of the chapter's verses, with read verses marked
+  - No network request once a chapter has loaded; the neighbouring chapter is fetched in advance at a chapter's edge
+- **Rich content**, each section remembered open or closed:
+  - **Transliteration** (IAST) under the verse
+  - **Word meanings** as a term-by-term list
+  - **Translations**: 5 English and 2 Hindi translators, chosen by name and remembered
+  - **Commentaries**: 16 commentators (English, Hindi and Sanskrit), loaded only when you open them
+- **Reading settings**: theme (System, Light, Dark), four text sizes each for the Sanskrit and the translation, show or hide transliteration, word meanings and the Hindi translation
 
 ### 🛡️ **Robust Technical Foundation**
 
@@ -55,17 +48,15 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
   - Per-page titles, descriptions and canonical links, plus a sitemap
 - **Saved Reading State**:
   - Reading history, last position and read verses persist in `localStorage`
-  - Preferred translator and commentator persist across visits
-  - Light/dark theme applied before the first paint on every page
+  - Translators, commentator, text sizes and open sections persist across visits
+  - The theme is applied before the first paint on every page
 
-### 🎨 **Modern Design Philosophy**
+### 🎨 **Design**
 
-- **Fully Responsive**: Perfect experience on desktop, tablet, and mobile
-- **Spiritual Color Palette**: Warm oranges, deep reds, and golden accents
-- **Glass Morphism**: Modern UI with backdrop blur effects and transparency (`backdrop-blur-md`, `bg-white/70`)
-- **Modern UI Components**: Built with Tailwind CSS and ShadCN UI
-- **Accessibility First**: Proper contrast ratios, keyboard navigation, screen reader support
-- **Smooth Interactions**: Elegant hover effects and micro-animations
+- **The manuscript page as the reading surface**: black ink on paper, with red kept for the ॥ verse markers and the current verse, as a scribe would use it
+- **Phone first**: designed at 390px; tablets and desktops centre the same column
+- **Accessible**: WCAG 2.2 AA checked with axe in light and dark themes, full keyboard use, screen-reader announcements on verse change, `lang` on every Sanskrit, Hindi and transliterated passage, reduced motion honoured
+- **Calm motion**: a 160 ms slide between verses and a 220 ms sheet, both off under reduced motion
 
 ## 🛠️ Tech Stack
 
@@ -78,11 +69,10 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 
 ### **UI & Design System**
 
-- **Tailwind CSS 4.0** for utility-first styling
-- **ShadCN UI Components** for consistent, accessible design system
-- **Lucide React** for beautiful, consistent iconography
-- **Custom CSS** for Sanskrit fonts and spiritual aesthetics
-- **Responsive Grid Layouts** for multi-device compatibility
+- **Tailwind CSS 4.0** with the colour and type tokens in `src/styles.css`
+- **Own base components** in `src/components/ui/`: button, sheet (native `<dialog>`), disclosure, segmented control, switch, radio list
+- **Lucide React** for icons
+- **Fonts** (self-hosted with Fontsource): Tiro Devanagari Sanskrit and Hindi, Source Serif 4, Libre Franklin
 
 ### **Development & Build Tools**
 
@@ -94,17 +84,18 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 
 ## 📚 Data
 
-The text is built once from a pinned commit of the open [gita/gita](https://github.com/gita/gita) dataset (the same data the previous RapidAPI integration served) and committed to `public/data/v1/`:
+The text is built once from a pinned commit of the open [gita/gita](https://github.com/gita/gita) dataset (the same data the previous RapidAPI integration served) and committed to `public/data/v2/`:
 
 ```text
-public/data/v1/
+public/data/v2/
   chapters.json                      # 18 chapters: names, meanings, English and Hindi summaries
-  chapter/{1..18}.json               # every verse: Sanskrit, transliteration, word meanings, 7 translations
+  chapter/{1..18}.json               # every verse: speaker, Sanskrit lines, transliteration, word meanings, 7 translations
   commentary/{chapter}/{verse}.json  # 16 commentators, loaded only when the reader opens commentary
 public/sitemap.xml                   # home, chapter list and all 701 verse URLs
 ```
 
-- `bun run data` downloads the pinned source, rebuilds these files and validates them (18 chapters, 701 verses, 7 translations per verse, every commentary file present).
+- `bun run data` downloads the pinned source, rebuilds these files and validates them (18 chapters, 701 verses, 7 translations per verse, every commentary file present, every chapter opening with a speaker line).
+- Formatting only, never wording: each verse is split into its half-verse lines, the closing `।।2.47।।` becomes the red marker, the "… उवाच" speaker line is lifted out (and संजय spelled सञ्जय throughout), and the reference that opens the Hindi translations is dropped. Every verse records who speaks it: Krishna 574, Arjuna 86, Sanjaya 40, Dhritarashtra 1.
 - `bun run data:check` validates the committed files offline; CI runs it on every push.
 - The files are served with a one-year immutable cache, so **bump `DATA_VERSION` in `src/lib/gitaData.ts` (and the folder name) whenever the data changes.**
 
@@ -154,27 +145,26 @@ No API key or environment variables are needed.
 ├── scripts/
 │   ├── build-data.ts               # `bun run data` / `bun run data:check`
 │   └── gita-data.ts                # Pure conversion and validation (unit-tested)
-├── e2e/                            # Playwright tests (phone and desktop)
+├── e2e/                            # Playwright tests (phone and desktop), including axe accessibility checks
 ├── public/
-│   ├── data/v1/                    # Generated chapter, verse and commentary files
+│   ├── data/v2/                    # Generated chapter, verse and commentary files
 │   └── sitemap.xml                 # Generated
 ├── src/
 │   ├── components/
-│   │   ├── ui/                     # ShadCN UI components
-│   │   ├── chapter/                # Verse reader: header, selector, verse, commentary
-│   │   ├── Dashboard.tsx           # Home page with a random verse
+│   │   ├── ui/                     # Button, sheet, disclosure, segmented control, switch, radio list
+│   │   ├── reader/                 # Verse reader: page, verse leaf, study sections, settings and verse-grid sheets
+│   │   ├── Dashboard.tsx           # Home page
 │   │   ├── ChaptersPage.tsx        # All chapters with search
-│   │   ├── ChapterPage.tsx         # Verse reader page
-│   │   ├── ContinueReading.tsx     # Last position and recent history
+│   │   ├── ContinueReading.tsx     # Recently read verses
 │   │   ├── RouteHead.tsx           # Per-page title, description, canonical link
 │   │   ├── RouteStatus.tsx         # Loading, error and not-found pages
-│   │   └── ThemeToggle.tsx         # Dark/Light theme switch
+│   │   └── ThemeToggle.tsx         # Dark theme button on the home page
 │   ├── lib/
 │   │   ├── gitaData.ts             # Data types, cached loaders, URL parsing
 │   │   ├── site.ts                 # Production URL and default metadata
-│   │   └── theme.ts                # Theme switching (mirrors the inline script in index.html)
+│   │   └── theme.ts                # System, Light or Dark (mirrors the inline script in index.html)
 │   ├── store/
-│   │   ├── preferencesStore.ts     # Translator, commentator, commentary open/closed
+│   │   ├── preferencesStore.ts     # Translators, commentator, text sizes, visible and open sections
 │   │   └── readingHistoryStore.ts  # Last position, history, bookmarks, read verses
 │   ├── routes/
 │   │   ├── __root.tsx
@@ -190,13 +180,15 @@ No API key or environment variables are needed.
 
 ```mermaid
 graph TD
-    A[Sacred Dashboard] -->|"Namaste" Button| B[Chapters Overview]
-    B -->|Search Chapters| B
-    B -->|Select Chapter| C[Chapter Detail View]
-    C -->|Browse Verses| D[Individual Verses]
-    C -->|Previous/Next| C
-    D -->|Multiple Translations| E[Rich Verse Content]
-    E -->|Commentary| F[Scholarly Insights]
+    A[Home] -->|Start reading or Continue| C[Verse reader]
+    A -->|All chapters| B[Chapter list]
+    B -->|Search| B
+    B -->|Choose a chapter| C
+    C -->|Previous, next, swipe, arrow keys| C
+    C -->|47 of 72| D[Verse grid]
+    D --> C
+    C -->|Aa| E[Reading settings]
+    C -->|Open a section| F[Word meanings, Hindi translation, commentary]
 ```
 
 ## 🏗️ Data and State
@@ -206,9 +198,10 @@ Route loaders fetch data; the URL is the source of truth for which verse is show
 ```typescript
 interface Verse {
   number: number
-  speaker: string | null                 // e.g. "अर्जुन उवाच", when the source names one
-  text: string                           // Sanskrit
-  transliteration: string                // IAST
+  speaker: "krishna" | "arjuna" | "sanjaya" | "dhritarashtra"
+  speakerLine: { sanskrit: string; transliteration: string } | null  // "श्री भगवानुवाच", on a speech's first verse
+  lines: string[]                        // Sanskrit half-verses (or four quarter-lines), no reference
+  transliteration: string[]              // IAST lines
   wordMeanings: string
   translations: Record<string, string>   // keyed by translator id, never by position
   commentators: number[]                 // ids with a commentary for this verse
@@ -224,43 +217,26 @@ interface ChapterFile {
 
 ## 🎨 Design System
 
-### **Sacred Color Palette**
+The tokens live in `src/styles.css`; the full rationale and measured contrast are in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md) §6.
+
+### **Colour** (light / dark)
 
 ```css
-/* Primary Colors */
---orange-50: #fff7ed    /* Soft backgrounds */
---orange-500: #f97316   /* Primary actions */
---orange-600: #ea580c   /* Hover states */
-
-/* Secondary Colors */  
---red-500: #ef4444      /* Accent elements */
---red-600: #dc2626      /* Active states */
-
-/* Golden Accents */
---yellow-50: #fefce8    /* Subtle highlights */
---yellow-500: #eab308   /* Golden touches */
-
-/* Neutral Grays */
---slate-600: #475569    /* Body text */
---slate-700: #334155    /* Headings */
+--ground:  #eeecea / #121212   /* page */
+--leaf:    #fbfaf8 / #1c1c1c   /* the verse leaf, sheets */
+--surface: #e4e1dd / #262626   /* tracks, read verses, secondary buttons */
+--ink:     #1f1e1d / #ecebe8   /* all running text; primary buttons */
+--muted:   #5f5b57 / #a8a4a0   /* transliteration, metadata */
+--rubric:  #b3261e / #ff8a7a   /* ॥ markers and the current verse only */
 ```
 
-### **Typography Hierarchy**
+### **Type**
 
 ```css
-/* Sanskrit Text */
-font-family: 'Noto Sans Devanagari', 'Mangal', serif;
-
-/* English Content */
-font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-
-/* Size Scale */
---text-xs: 0.75rem      /* Captions */
---text-sm: 0.875rem     /* Body small */
---text-base: 1rem       /* Body text */
---text-lg: 1.125rem     /* Emphasis */
---text-xl: 1.25rem      /* Headings */
---text-2xl: 1.5rem      /* Page titles */
+--font-sanskrit: "Tiro Devanagari Sanskrit"   /* the verse, 24px on phones, 30px on desktop */
+--font-hindi:    "Tiro Devanagari Hindi"      /* Hindi translation and commentary */
+--font-serif:    "Source Serif 4 Variable"    /* English reading text; italic for IAST */
+--font-sans:     "Libre Franklin Variable"    /* interface, headings, numbers */
 ```
 
 ## 🔧 Available Scripts
@@ -299,45 +275,15 @@ The production URL used for canonical links and the sitemap is set in `src/lib/s
 
 ## 🚧 Future Roadmap
 
-### **Phase 1: Core Features** ✅ Completed
+The phases, their acceptance criteria and their status are in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md) §9.
 
-- [x] Rich verse display with multiple translations
-- [x] Commentary integration with scholarly interpretations
-- [x] Translation author selection
-- [x] Static, validated data with no third-party API
-- [x] Glass morphism UI with backdrop blur effects
-- [x] Responsive design with spiritual aesthetics
-- [x] Dark/Light theme support
-- [x] Word meanings and transliteration support
-
-### **Phase 2: Audio & Multimedia** 🔜 Next Priority
-
-- [ ] Sanskrit pronunciation audio
-- [ ] Verse-by-verse audio playback
-- [ ] Audio controls and speed adjustment
-- [ ] Offline audio caching
-
-### **Phase 3: Personalization**
-
-- [ ] Bookmark favorite verses
-- [ ] Personal reading progress tracking
-- [ ] Daily verse notifications
-- [ ] Reading statistics and insights
-
-### **Phase 4: Advanced Features**
-
-- [ ] Multi-language support (Telugu, Tamil, Gujarati)
-- [ ] Dark mode with spiritual themes  
-- [ ] Advanced search across all verses
-- [ ] Commentary comparison view
-- [ ] Social sharing with beautiful verse cards
-
-### **Phase 5: Community & Learning**
-
-- [ ] Study guides and verse explanations
-- [ ] Meditation timers with verse focus
-- [ ] Community discussions and insights
-- [ ] Scholar interviews and video content
+- [x] Phase 0: hygiene and guardrails
+- [x] Phase 1: static data, verse URLs, bug fixes
+- [x] Phase 2: design system and the mobile reader
+- [ ] Phase 3: chapter list, chapter page, home, About
+- [ ] Phase 4: recorded recitation and offline reading
+- [ ] Phase 5: search, saved verses, progress, sharing, today's verse
+- [ ] Phase 6: prerendering, SEO, launch
 
 ## 🤝 Contributing
 
@@ -376,7 +322,7 @@ The source code is licensed under the **MIT License** - see the [LICENSE](LICENS
 
 ### **Technical Foundation**
 
-- **ShadCN** for beautiful, accessible UI components
+- **Fonts** under the SIL Open Font License 1.1: Tiro Devanagari Sanskrit and Hindi (Tiro Typeworks), Source Serif 4 (Adobe), Libre Franklin (Impallari Type)
 - **Tailwind CSS** for expressive, maintainable styling
 - **TanStack Router** for elegant routing solutions
 - **Zustand** for simple, effective state management
@@ -431,7 +377,7 @@ May this digital offering serve as a bridge between ancient wisdom and modern te
 
 ### **Ready to Begin Your Spiritual Journey?**
 
-**[🚀 Launch the App](http://localhost:3000) | [📖 Read the Gita](http://localhost:3000/chapters) | [🙏 Start with Namaste](http://localhost:3000)**
+**[🚀 Launch the App](http://localhost:3000) | [📖 Read the Gita](http://localhost:3000/chapters) | [🙏 Start at 1.1](http://localhost:3000/chapter/1/verse/1)**
 
 *Built with � for spiritual seekers everywhere*
 

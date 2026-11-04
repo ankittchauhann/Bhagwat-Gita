@@ -1,4 +1,4 @@
-import devanagariFontUrl from "@fontsource-variable/noto-sans-devanagari/files/noto-sans-devanagari-devanagari-wght-normal.woff2?url";
+import sanskritFontUrl from "@fontsource/tiro-devanagari-sanskrit/files/tiro-devanagari-sanskrit-devanagari-400-normal.woff2?url";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
@@ -8,18 +8,20 @@ import { routeTree } from "./routeTree.gen";
 
 import { RouteHead } from "./components/RouteHead";
 import { NotFoundPage } from "./components/RouteStatus";
+import { followSystemTheme } from "./lib/theme";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 
-// Preload the Devanagari font file so Sanskrit/Hindi text doesn't wait for
-// the stylesheet's @font-face to be discovered before the browser fetches it.
+// Preload the Sanskrit font so the verse doesn't wait for the stylesheet's @font-face to be discovered.
 const fontPreloadLink = document.createElement("link");
 fontPreloadLink.rel = "preload";
 fontPreloadLink.as = "font";
 fontPreloadLink.type = "font/woff2";
-fontPreloadLink.href = devanagariFontUrl;
+fontPreloadLink.href = sanskritFontUrl;
 fontPreloadLink.crossOrigin = "anonymous";
 document.head.appendChild(fontPreloadLink);
+
+followSystemTheme();
 
 // Create a new router instance
 const router = createRouter({
