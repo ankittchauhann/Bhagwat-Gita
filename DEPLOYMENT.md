@@ -1,64 +1,36 @@
 # Deployment Guide for Bhagavad Gita App
 
-## Problem Solved
+The app is a static site. `bun run build` writes the pages, scripts and all Gita data to `dist/`; there are no serverless functions and no environment variables.
 
-Your app was failing on Vercel because the Vite proxy configuration (in `vite.config.ts`) only works during local development. In production, Vercel needs actual API routes to handle the requests.
+## Vercel (current host)
 
-## What We've Set Up
+Pushing to `main` deploys automatically. `vercel.json` does two things:
 
-### 1. Vercel API Routes (JavaScript)
+- rewrites every path except `/data/*` to `/index.html`, so links such as `/chapter/2/verse/47` open the app;
+- serves `/data/*` with `Cache-Control: public, max-age=31536000, immutable`.
 
-- `api/chapters.js` - List all chapters
-- `api/chapters/[chapterId].js` - Get specific chapter
-- `api/chapters/[chapterId]/verses.js` - Get all verses for a chapter
-- `api/chapters/[chapterId]/verses/[verseNumber].js` - Get specific verse
+Because data files are cached for a year, change the folder name and `DATA_VERSION` in `src/lib/gitaData.ts` (for example `v1` → `v2`) whenever `bun run data` produces different files.
 
-Each route file just re-exports the real handler from `api/_handlers/`, which is where the logic actually lives (kept out of bracket-path directories so it stays testable).
+## One-time cleanup after the RapidAPI removal
 
-### 2. Environment Variables
+The app no longer calls RapidAPI. After this version is live:
 
-- `.env.local` - For local development (gitignored, not committed)
-- `.env.example` - Template for others
-- Environment variables are protected by `.gitignore`
+1. Revoke the RapidAPI key in the RapidAPI dashboard.
+2. In Vercel → Settings → Environment Variables, delete `RAPIDAPI_HOST`, `RAPIDAPI_KEY` and `RAPIDAPI_BASE_URL`.
+3. Delete the local `.env` and `.env.local` files that held the key.
 
-### 3. Shared Utility Functions
+## Checking a deployment
 
-- `api/_lib/utils.js` - Reusable functions for CORS headers, env validation, and error responses
+After deployment, these should all load:
 
-## Deployment Steps
+- `https://bhagwat-gita-iota.vercel.app/chapters`
+- `https://bhagwat-gita-iota.vercel.app/chapter/2/verse/47`
+- `https://bhagwat-gita-iota.vercel.app/chapter/2?verse=47` (redirects to the line above)
+- `https://bhagwat-gita-iota.vercel.app/data/v1/chapter/2.json`
+- `https://bhagwat-gita-iota.vercel.app/sitemap.xml`
 
-### Step 1: Push to GitHub
+and `https://bhagwat-gita-iota.vercel.app/chapter/99` should show the "Page not found" page.
 
-```bash
-git add .
-git commit -m "Add Vercel API routes with TypeScript and environment variables"
-git push origin main
-```
+## Other static hosts
 
-### Step 2: Configure Vercel Environment Variables
-
-1. Go to your Vercel dashboard
-2. Select your Bhagwat-Gita project  
-3. Go to Settings → Environment Variables
-4. Add these variables (use your own RapidAPI key — never commit it to source):
-   - `RAPIDAPI_HOST` = `bhagavad-gita3.p.rapidapi.com`
-   - `RAPIDAPI_KEY` = `<your-rapidapi-key>`
-   - `RAPIDAPI_BASE_URL` = `https://bhagavad-gita3.p.rapidapi.com/v2`
-
-### Step 3: Deploy
-
-Vercel will automatically redeploy when you push to main, or you can trigger a manual deployment.
-
-## Testing the API
-
-After deployment, test these URLs:
-
-- `https://bhagwat-gita-iota.vercel.app/api/chapters?skip=0&limit=18`
-- `https://bhagwat-gita-iota.vercel.app/api/chapters/1`
-- `https://bhagwat-gita-iota.vercel.app/api/chapters/1/verses`
-
-## Security Notes
-
-- API keys are stored as environment variables (not in code)
-- CORS headers are properly configured
-- Error handling includes proper status codes
+Serve `dist/` and rewrite unknown paths to `/index.html`, excluding `/data/`. If the domain changes, update `SITE_URL` in `src/lib/site.ts`, the URLs in `index.html` and `public/robots.txt`, then run `bun run data` to regenerate the sitemap.

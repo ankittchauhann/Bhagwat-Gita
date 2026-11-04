@@ -7,8 +7,16 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["src/routeTree.gen.ts"],
-		"include": ["src/*", ".vscode/*", "index.html", "vite.config.ts", "api/*"]
+		"ignore": ["src/routeTree.gen.ts", ".claude"],
+		"include": [
+			"src/*",
+			".vscode/*",
+			"index.html",
+			"vite.config.ts",
+			"playwright.config.ts",
+			"scripts/*",
+			"e2e/*"
+		]
 	},
 	"formatter": {
 		"enabled": true,

@@ -158,7 +158,7 @@ export function Dashboard() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-center text-slate-600">
+							<p className="text-sm text-center text-slate-600 dark:text-slate-300">
 								From Arjuna's dilemma to the ultimate surrender, discover the
 								complete journey of spiritual wisdom.
 							</p>
@@ -170,13 +170,13 @@ export function Dashboard() {
 							<div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
 								<Sparkles className="h-6 w-6 text-white" />
 							</div>
-							<CardTitle className="text-xl">700 Verses</CardTitle>
+							<CardTitle className="text-xl">701 Verses</CardTitle>
 							<CardDescription>
 								Sacred shlokas in Sanskrit and English
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-center text-slate-600">
+							<p className="text-sm text-center text-slate-600 dark:text-slate-300">
 								Experience the divine teachings in both original Sanskrit and
 								clear English translations.
 							</p>
@@ -194,7 +194,7 @@ export function Dashboard() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<p className="text-sm text-center text-slate-600">
+							<p className="text-sm text-center text-slate-600 dark:text-slate-300">
 								Find answers to life's deepest questions through Krishna's
 								eternal teachings.
 							</p>

@@ -91,16 +91,26 @@ const deserializeStats = (data: SerializedStats): ReadingStats => ({
 	versesRead: new Set(data.versesRead || []),
 });
 
+// Read synchronously at creation so a direct visit to a verse never overwrites saved history with an empty state.
+const readStoredState = () => ({
+	lastPosition: loadFromStorage<ReadingPosition | null>(
+		STORAGE_KEYS.LAST_POSITION,
+		null,
+	),
+	history: loadFromStorage<HistoryEntry[]>(STORAGE_KEYS.HISTORY, []),
+	bookmarks: loadFromStorage<Bookmark[]>(STORAGE_KEYS.BOOKMARKS, []),
+	stats: deserializeStats(
+		loadFromStorage<SerializedStats>(STORAGE_KEYS.STATS, {
+			versesRead: [],
+			totalTimeSpent: 0,
+			lastReadDate: new Date().toISOString().split("T")[0],
+			readingStreak: 0,
+		}),
+	),
+});
+
 export const useReadingHistory = create<ReadingHistoryState>((set, get) => ({
-	lastPosition: null,
-	history: [],
-	bookmarks: [],
-	stats: {
-		versesRead: new Set<string>(),
-		totalTimeSpent: 0,
-		lastReadDate: new Date().toISOString().split("T")[0],
-		readingStreak: 0,
-	},
+	...readStoredState(),
 
 	setLastPosition: (position) => {
 		set({ lastPosition: position });
@@ -201,21 +211,6 @@ export const useReadingHistory = create<ReadingHistoryState>((set, get) => ({
 	},
 
 	loadFromStorage: () => {
-		const lastPosition = loadFromStorage<ReadingPosition | null>(
-			STORAGE_KEYS.LAST_POSITION,
-			null,
-		);
-		const history = loadFromStorage<HistoryEntry[]>(STORAGE_KEYS.HISTORY, []);
-		const bookmarks = loadFromStorage<Bookmark[]>(STORAGE_KEYS.BOOKMARKS, []);
-		const statsData = loadFromStorage<SerializedStats>(STORAGE_KEYS.STATS, {
-			versesRead: [],
-			totalTimeSpent: 0,
-			lastReadDate: new Date().toISOString().split("T")[0],
-			readingStreak: 0,
-		});
-
-		const stats = deserializeStats(statsData);
-
-		set({ lastPosition, history, bookmarks, stats });
+		set(readStoredState());
 	},
 }));

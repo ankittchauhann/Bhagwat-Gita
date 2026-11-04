@@ -27,18 +27,15 @@ const VerseButton = memo(
 		onSelect: (verse: number) => void;
 	}) => (
 		<Button
-			key={verseNumber}
 			variant={isSelected ? "default" : "ghost"}
 			size="sm"
-			className={`w-full justify-start text-left transform-gpu cursor-pointer ${
+			aria-current={isSelected ? "true" : undefined}
+			className={`w-full justify-start text-left cursor-pointer ${
 				isSelected
 					? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm"
-					: "hover:bg-orange-100 text-slate-700"
+					: "hover:bg-orange-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
 			}`}
 			onClick={() => onSelect(verseNumber)}
-			style={{
-				contain: "layout style paint",
-			}}
 		>
 			<span className="mr-2">श्लोक</span> {verseNumber}
 		</Button>
@@ -76,18 +73,15 @@ export function VerseSelector({
 		<>
 			{/* Sidebar - Verses List (Desktop) */}
 			<div className="hidden lg:block lg:col-span-1">
-				<Card
-					className="bg-white/70 backdrop-blur-sm border-0 shadow-lg sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto transform-gpu will-change-scroll"
-					style={{ contain: "layout style paint" }}
-				>
+				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg sticky top-24 max-h-[calc(100vh-8rem)] overflow-auto">
 					<CardHeader>
 						<CardTitle className="text-lg">All Verses</CardTitle>
 						<CardDescription>श्लोक सूची - {versesCount} total</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-2" style={{ contain: "layout" }}>
+						<nav aria-label="Verses" className="space-y-2">
 							{verseButtons}
-						</div>
+						</nav>
 					</CardContent>
 				</Card>
 			</div>
@@ -96,14 +90,20 @@ export function VerseSelector({
 				<Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
 					<CardContent className="pt-6">
 						<div className="space-y-2">
-							<div className="text-sm font-medium text-slate-700">
+							<div
+								id="verse-select-label"
+								className="text-sm font-medium text-slate-700 dark:text-slate-200"
+							>
 								Select Verse (श्लोक चुनें)
 							</div>
 							<Select
 								value={selectedVerse.toString()}
 								onValueChange={(value) => onSelect(Number.parseInt(value))}
 							>
-								<SelectTrigger className="w-full">
+								<SelectTrigger
+									className="w-full"
+									aria-labelledby="verse-select-label"
+								>
 									<SelectValue placeholder="Choose a verse..." />
 								</SelectTrigger>
 								<SelectContent className="max-h-60 w-full">

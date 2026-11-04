@@ -6,6 +6,8 @@ import ReactDOM from "react-dom/client";
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
+import { RouteHead } from "./components/RouteHead";
+import { NotFoundPage } from "./components/RouteStatus";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 
@@ -27,6 +29,14 @@ const router = createRouter({
 	scrollRestoration: true,
 	defaultStructuralSharing: true,
 	defaultPreloadStaleTime: 0,
+	defaultNotFoundComponent: NotFoundPage,
+	// Rendered outside the route tree so page metadata updates even when a not-found replaces the root layout.
+	InnerWrap: ({ children }) => (
+		<>
+			<RouteHead />
+			{children}
+		</>
+	),
 });
 
 // Register the router instance for type safety

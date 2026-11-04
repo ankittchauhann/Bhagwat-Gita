@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+	color-scheme: light;
+}
+
+:root.dark {
+	color-scheme: dark;
+}
+
 body {
 	@apply m-0;
 	/* Noto Sans Devanagari Variable is appended as a fallback so any Devanagari
@@ -75,6 +83,15 @@ code {
 
 .switch input:checked + .slider {
 	background-color: #00a6ff;
+}
+
+.switch input:focus-visible + .slider {
+	outline: 2px solid #0f172a;
+	outline-offset: 3px;
+}
+
+.dark .switch input:focus-visible + .slider {
+	outline-color: #f8fafc;
 }
 
 .switch input:checked + .slider:before {

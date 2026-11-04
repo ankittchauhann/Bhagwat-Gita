@@ -34,18 +34,22 @@ export function ContinueReading() {
 	const handleContinueReading = () => {
 		if (lastPosition) {
 			navigate({
-				to: "/chapter/$chapterId",
-				params: { chapterId: lastPosition.chapterId.toString() },
-				search: { verse: lastPosition.verseNumber },
+				to: "/chapter/$chapterId/verse/$verseNumber",
+				params: {
+					chapterId: lastPosition.chapterId.toString(),
+					verseNumber: lastPosition.verseNumber.toString(),
+				},
 			});
 		}
 	};
 
 	const handleHistoryClick = (chapterId: number, verseNumber: number) => {
 		navigate({
-			to: "/chapter/$chapterId",
-			params: { chapterId: chapterId.toString() },
-			search: { verse: verseNumber },
+			to: "/chapter/$chapterId/verse/$verseNumber",
+			params: {
+				chapterId: chapterId.toString(),
+				verseNumber: verseNumber.toString(),
+			},
 		});
 	};
 
@@ -137,7 +141,7 @@ export function ContinueReading() {
 											</p>
 											{entry.versePreview && (
 												<p className="text-xs text-slate-500 dark:text-slate-500 line-clamp-1 font-sanskrit">
-													{entry.versePreview}...
+													{entry.versePreview}…
 												</p>
 											)}
 											<span className="text-xs text-slate-400 dark:text-slate-500">
