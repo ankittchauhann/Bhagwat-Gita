@@ -4,6 +4,7 @@ import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { loadEnv } from "vite";
 import { defineConfig } from "vitest/config";
+import { toUpstreamPath } from "./devProxy";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -27,7 +28,7 @@ export default defineConfig(({ mode }) => {
 					target:
 						env.RAPIDAPI_BASE_URL || "https://bhagavad-gita3.p.rapidapi.com/v2",
 					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/api/, ""),
+					rewrite: toUpstreamPath,
 					configure: (proxy) => {
 						proxy.on("proxyReq", (proxyReq) => {
 							// Add RapidAPI headers to the proxied request
