@@ -7,3 +7,10 @@ count.txt
 .env
 .nitro
 .tanstack
+
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/agents/case-study-writer.md
+.claude/commands/case-study.md
+.taste-skill/
+pr-message.md
