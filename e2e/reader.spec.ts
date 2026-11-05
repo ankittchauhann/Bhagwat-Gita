@@ -62,7 +62,7 @@ test("the whole Sanskrit verse is on the first screen of a 390 × 844 phone", as
 }) => {
 	await page.setViewportSize({ width: 390, height: 844 });
 	await page.goto("/chapter/2/verse/47");
-	const verse = page.locator("p.text-sanskrit");
+	const verse = page.locator("p.verse-sanskrit");
 	await expect(verse).toBeVisible();
 	const box = await verse.boundingBox();
 	const bottomBar = await page
@@ -81,37 +81,75 @@ test("the speaker is named on every verse and the speech opening is shown", asyn
 	await page.goto("/chapter/2/verse/47");
 	await expect(page.getByText("Krishna said")).toBeVisible();
 	await expect(page.getByText("श्री भगवानुवाच")).toHaveCount(0);
-	await expect(page.locator("p.text-sanskrit")).toContainText("॥ २.४७ ॥");
-	await expect(page.locator("p.text-sanskrit")).not.toContainText("2.47");
+	await expect(page.locator("p.verse-sanskrit")).toContainText("॥ २.४७ ॥");
+	await expect(page.locator("p.verse-sanskrit")).not.toContainText("2.47");
 });
 
 test("the chosen translator stays across verses and reloads", async ({
 	page,
 }) => {
 	await page.goto("/chapter/2/verse/47");
-	const leaf = page.locator("article");
+	const main = page.locator("main");
 	await expect(
-		leaf.getByText("Swami Sivananda", { exact: true }),
+		main.getByText("Swami Sivananda", { exact: true }).first(),
 	).toBeVisible();
 
-	await page.getByRole("button", { name: "Change translation" }).click();
+	await page
+		.getByRole("button", { name: "Change English translation" })
+		.click();
 	await page.getByRole("radio", { name: "Swami Gambirananda" }).check();
 	await page.keyboard.press("Escape");
 	await expect(page.getByRole("dialog")).toHaveCount(0);
 	await expect(
-		leaf.getByText("Swami Gambirananda", { exact: true }),
+		main.getByText("Swami Gambirananda", { exact: true }).first(),
 	).toBeVisible();
 
 	await nextLink(page).click();
 	await expect(page).toHaveURL(/\/verse\/48$/);
 	await expect(
-		leaf.getByText("Swami Gambirananda", { exact: true }),
+		main.getByText("Swami Gambirananda", { exact: true }).first(),
 	).toBeVisible();
 
 	await page.reload();
 	await expect(
-		leaf.getByText("Swami Gambirananda", { exact: true }),
+		main.getByText("Swami Gambirananda", { exact: true }).first(),
 	).toBeVisible();
+});
+
+test("on a laptop the verse, both translations and the word meanings share the first screen", async ({
+	page,
+	isMobile,
+}) => {
+	test.skip(isMobile, "Laptop layout");
+	await page.goto("/chapter/2/verse/47");
+	const firstScreen = page.viewportSize()?.height ?? 0;
+	for (const text of [
+		"Your right is only to work, but not to its results;",
+		"कर्तव्य-कर्म करनेमें ही तेरा अधिकार है,",
+		"Word meanings",
+	]) {
+		const box = await page.getByText(text).first().boundingBox();
+		expect(box && box.y + 20 < firstScreen, text).toBe(true);
+	}
+	await expect(
+		page.getByRole("navigation", { name: "Previous and next verse" }),
+	).toHaveCount(1);
+	const commentary = page.getByRole("button", { name: /^Commentary/ });
+	await expect(commentary).toBeVisible();
+
+	await page.locator('a[title="2.50"]').click();
+	await expect(verseHeading(page, 2, 50)).toBeVisible();
+});
+
+test("a long-metre verse keeps its four quarter-lines on a phone and pairs them on a laptop", async ({
+	page,
+	isMobile,
+}) => {
+	await page.goto("/chapter/11/verse/32");
+	await expect(page.locator("p.verse-sanskrit > span")).toHaveCount(
+		isMobile ? 4 : 2,
+	);
+	await expect(page.locator("p.verse-sanskrit")).toContainText("॥ ११.३२ ॥");
 });
 
 test("commentary loads when opened, English first, and any commentator can be chosen", async ({
@@ -140,10 +178,12 @@ test("open sections and text sizes are remembered across verses and reloads", as
 	page,
 }) => {
 	await page.goto("/chapter/2/verse/47");
-	const wordMeanings = page.getByRole("button", { name: "Word meanings" });
-	await wordMeanings.click();
-	await expect(wordMeanings).toHaveAttribute("aria-expanded", "true");
-	await expect(page.getByText("in prescribed duties")).toBeVisible();
+	const commentary = page.getByRole("button", { name: /^Commentary/ });
+	await commentary.click();
+	await expect(commentary).toHaveAttribute("aria-expanded", "true");
+	await expect(
+		page.getByRole("combobox", { name: "Commentator" }),
+	).toBeVisible();
 
 	await page.getByRole("button", { name: "Reading settings" }).click();
 	await page
@@ -154,15 +194,15 @@ test("open sections and text sizes are remembered across verses and reloads", as
 	await page.getByRole("button", { name: "Close" }).click();
 
 	await expect(page.locator("main")).toHaveAttribute("data-sanskrit-size", "3");
-	await expect(page.locator(".text-transliteration")).toHaveCount(0);
+	await expect(page.locator(".transliteration-text")).toHaveCount(0);
 
 	await nextLink(page).click();
 	await page.reload();
 	await expect(
-		page.getByRole("button", { name: "Word meanings" }),
+		page.getByRole("button", { name: /^Commentary/ }),
 	).toHaveAttribute("aria-expanded", "true");
 	await expect(page.locator("main")).toHaveAttribute("data-sanskrit-size", "3");
-	await expect(page.locator(".text-transliteration")).toHaveCount(0);
+	await expect(page.locator(".transliteration-text")).toHaveCount(0);
 });
 
 test("arrow keys move between verses and across chapters, but not while a sheet is open", async ({
@@ -282,7 +322,7 @@ test("a keyboard alone can reach every control, use the settings sheet and turn 
 	await expect(verseHeading(page, 2, 47)).toBeVisible();
 
 	const names: string[] = [];
-	for (let step = 0; step < 10; step++) {
+	for (let step = 0; step < 9; step++) {
 		await page.keyboard.press("Tab");
 		names.push(
 			await page.evaluate(() => {
@@ -295,15 +335,15 @@ test("a keyboard alone can reach every control, use the settings sheet and turn 
 		"Skip to verse",
 		"All chapters",
 		"Reading settings",
-		"47 of 72, choose a verse",
-		"Change translation",
-		"Word meanings",
-		"Hindi translation\nSwami Ramsukhdas",
-		"Commentary\nSwami Sivananda",
 		"Previous verse, 2.46",
 		"Next verse, 2.48",
+		"47 of 72, choose a verse",
+		"Change English translation",
+		"Change Hindi translation",
+		"Commentary\nSwami Sivananda",
 	]);
 
+	await nextLink(page).focus();
 	await page.keyboard.press("Enter");
 	await expect(verseHeading(page, 2, 48)).toBeVisible();
 	await expect(nextLink(page)).toBeFocused();
@@ -494,6 +534,6 @@ test("a first visit starts reading at 1.1", async ({ page }) => {
 	await page.getByRole("link", { name: "Start reading" }).click();
 	await expect(verseHeading(page, 1, 1)).toBeVisible();
 	await expect(
-		page.getByText("Dhritarashtra said", { exact: true }),
+		page.getByText("Dhritarashtra said", { exact: true }).first(),
 	).toBeVisible();
 });

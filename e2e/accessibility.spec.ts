@@ -37,18 +37,22 @@ for (const colorScheme of ["light", "dark"] as const) {
 			page,
 		}) => {
 			await page.goto("/chapter/2/verse/11");
+			await expect(page.locator("p.verse-sanskrit")).toBeVisible();
 			for (const name of [
 				/^Word meanings/,
 				/^Hindi translation/,
 				/^Commentary/,
 			]) {
-				await page.getByRole("button", { name }).click();
+				const section = page.getByRole("button", { name });
+				if ((await section.count()) > 0) {
+					await section.click();
+				}
 			}
 			await expect(
 				page.getByRole("combobox", { name: "Commentator" }),
 			).toBeVisible();
 			await expect(
-				page.locator("[lang=en].text-reading, p.text-reading").last(),
+				page.locator("[lang=en].reading-text, p.reading-text").last(),
 			).toBeVisible();
 			await expectNoViolations(page);
 		});
