@@ -17,6 +17,8 @@ import {
 	buildData,
 	commentaryKey,
 	creditsFor,
+	downloadSizesFor,
+	jsonFile as json,
 	sitemapXml,
 	validateBuiltData,
 } from "./gita-data";
@@ -33,10 +35,6 @@ async function download<T>(file: string): Promise<T> {
 		throw new Error(`${url}: HTTP ${response.status}`);
 	}
 	return (await response.json()) as T;
-}
-
-function json(value: unknown) {
-	return `${JSON.stringify(value)}\n`;
 }
 
 async function readJson<T>(file: string): Promise<T> {
@@ -87,6 +85,10 @@ async function build() {
 		}
 	}
 	await writeFile(path.join(DATA_DIR, "credits.json"), json(creditsFor(data)));
+	await writeFile(
+		path.join(DATA_DIR, "sizes.json"),
+		json(downloadSizesFor(data)),
+	);
 	await writeFile(SITEMAP_FILE, sitemapXml(SITE_URL, data.chapterFiles));
 
 	report(data);
@@ -141,6 +143,13 @@ async function check() {
 	if (credits !== json(creditsFor(data))) {
 		errors.push(
 			`public/data/${DATA_VERSION}/credits.json is out of date; run \`bun run data\``,
+		);
+	}
+
+	const sizes = await readFile(path.join(DATA_DIR, "sizes.json"), "utf8");
+	if (sizes !== json(downloadSizesFor(data))) {
+		errors.push(
+			`public/data/${DATA_VERSION}/sizes.json is out of date; run \`bun run data\``,
 		);
 	}
 

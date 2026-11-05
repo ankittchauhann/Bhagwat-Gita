@@ -8,7 +8,9 @@ import { routeTree } from "./routeTree.gen";
 
 import { RouteHead } from "./components/RouteHead";
 import { NotFoundPage } from "./components/RouteStatus";
+import { captureInstallPrompt } from "./lib/install";
 import { followSystemTheme } from "./lib/theme";
+import { startOfflineLibrary } from "./store/offlineStore";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 
@@ -22,6 +24,8 @@ fontPreloadLink.crossOrigin = "anonymous";
 document.head.appendChild(fontPreloadLink);
 
 followSystemTheme();
+captureInstallPrompt();
+startOfflineLibrary();
 
 // Create a new router instance
 const router = createRouter({

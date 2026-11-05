@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
+import { Button } from "@/components/ui/button";
 import {
 	CONTACT_URL,
 	CONTENT_TERMS_URL,
@@ -10,7 +11,11 @@ import {
 	pictureThumbnail,
 } from "@/lib/credits";
 import type { Author, Language } from "@/lib/gitaData";
-import { getRouteApi } from "@tanstack/react-router";
+import { install, isInstalled, useInstallPrompt } from "@/lib/install";
+import { formatBytes } from "@/lib/offline";
+import { useOfflineLibrary } from "@/store/offlineStore";
+import { Link, getRouteApi } from "@tanstack/react-router";
+import { Download } from "lucide-react";
 import type { ReactNode } from "react";
 
 const route = getRouteApi("/about");
@@ -74,6 +79,65 @@ function AuthorList({ authors }: { authors: Author[] }) {
 
 const linkClass =
 	"font-semibold text-ink underline decoration-control underline-offset-4 hover:decoration-ink";
+
+const INSTALL_STEPS = [
+	{
+		device: "iPhone and iPad",
+		step: "In Safari, tap Share, then Add to Home Screen.",
+	},
+	{
+		device: "Android",
+		step: "In Chrome, open the ⋮ menu, then Add to home screen.",
+	},
+	{
+		device: "Computer",
+		step: "In Chrome or Edge, choose the install icon at the end of the address bar.",
+	},
+];
+
+function InstallSection() {
+	const installPrompt = useInstallPrompt();
+	const library = useOfflineLibrary();
+	const installed = isInstalled();
+
+	return (
+		<Section
+			id="about-install"
+			title="Install and read offline"
+			note="Add the reader to your home screen and it opens like an app. Saved chapters read without a connection."
+		>
+			{installed ? (
+				<p className="text-[16px]">You're reading in the installed app.</p>
+			) : (
+				<>
+					{installPrompt && (
+						<Button variant="primary" className="mb-5" onClick={install}>
+							<Download aria-hidden="true" />
+							Install the app
+						</Button>
+					)}
+					<dl className="grid gap-x-8 gap-y-4 text-[16px] sm:grid-cols-3">
+						{INSTALL_STEPS.map(({ device, step }) => (
+							<div key={device}>
+								<dt className="text-[14px] text-muted">{device}</dt>
+								<dd>{step}</dd>
+							</div>
+						))}
+					</dl>
+				</>
+			)}
+			{library.supported && (
+				<p className="mt-5 border-t pt-4 text-[15px] text-muted">
+					{library.usage !== null &&
+						`This site uses ${formatBytes(library.usage)} on this device. `}
+					<Link to="/chapters" hash="offline-reading" className={linkClass}>
+						Download chapters
+					</Link>
+				</p>
+			)}
+		</Section>
+	);
+}
 
 export function AboutPage() {
 	const credits = route.useLoaderData();
@@ -212,10 +276,12 @@ export function AboutPage() {
 					</ul>
 				</Section>
 
+				<InstallSection />
+
 				<Section
 					id="about-privacy"
 					title="Privacy and code"
-					note="No accounts and no tracking. Your place, settings and read verses stay in this browser."
+					note="No accounts and no tracking. Your place, settings, read verses and saved chapters stay in this browser."
 				>
 					<dl className="grid gap-x-8 gap-y-4 text-[16px] sm:grid-cols-2">
 						<div>
