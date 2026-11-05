@@ -64,9 +64,9 @@ export default defineConfig({
 				clientsClaim: true,
 				runtimeCaching: [
 					{
-						// The page saves chapters and commentaries itself (src/lib/gitaData.ts); the worker only reads them back.
+						// The page saves chapters, commentaries and search files itself (src/lib/gitaData.ts); the worker only reads them back.
 						urlPattern: new RegExp(
-							`/data/${DATA_VERSION}/(chapter|commentary)/`,
+							`/data/${DATA_VERSION}/(chapter|commentary|search)/`,
 						),
 						handler: async ({ request }) =>
 							(await caches.match(request)) ?? fetch(request),

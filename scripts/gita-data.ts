@@ -7,6 +7,8 @@ import {
 	type DownloadSizes,
 	type Language,
 	SPEAKERS,
+	type SearchFile,
+	type SearchScript,
 	type Speaker,
 	type Verse,
 	type VerseCommentary,
@@ -526,6 +528,47 @@ export function downloadSizesFor(data: BuiltData): DownloadSizes {
 				0,
 			),
 		})),
+	};
+}
+
+export function searchFilesFor(
+	data: BuiltData,
+): Record<SearchScript, SearchFile> {
+	const [first] = data.chapterFiles;
+	const authors = (language: Language) =>
+		(first?.translators ?? [])
+			.filter((author) => author.language === language)
+			.map(({ id, name }) => ({ id, name }));
+	const english = authors("english");
+	const hindi = authors("hindi");
+	const verses = data.chapterFiles.flatMap((file) =>
+		file.verses.map((verse) => ({ chapter: file.chapter.number, verse })),
+	);
+	const entry = (
+		{ chapter, verse }: (typeof verses)[number],
+		text: string,
+		translators: { id: number }[],
+	) => ({
+		c: chapter,
+		v: verse.number,
+		s: verse.speaker,
+		l: verse.lines[0],
+		t: text,
+		x: translators.map((author) => verse.translations[author.id]),
+	});
+	return {
+		latin: {
+			authors: english,
+			verses: verses.map((item) =>
+				entry(item, item.verse.transliteration.join(" "), english),
+			),
+		},
+		devanagari: {
+			authors: hindi,
+			verses: verses.map((item) =>
+				entry(item, item.verse.lines.join(" "), hindi),
+			),
+		},
 	};
 }
 

@@ -920,16 +920,82 @@ The audio work is blocked on D-2; offline text is not.
 
 ### Phase 5: Search, saved, progress, share, today's verse (M)
 
-- [ ] Search with MiniSearch 7.2.0, lazy-loaded. It jumps to references (`2.47`, `2 47`, `ch 2 v 47`) and does full-text search over the translations and IAST.
-- [ ] Saved verses with notes; progress on the chapter list and chapter pages; a streak counter (the store already exists).
-- [ ] Share through `navigator.share`, falling back to copying with a citation. (Today's verse shipped in Phase 3.)
+**Status: done** on branch `feature/search-and-saved`. The screens were drawn first, on the fifth row of the Claude Design canvas ([Gita Reader Layouts](https://claude.ai/artifact/9N4h8aeA9XwmffeQAySCSm)), then built.
+
+- [x] Search with MiniSearch 7.2.0, lazy-loaded. It jumps to references (`2.47`, `2 47`, `ch 2 v 47`) and does full-text search over the translations and IAST.
+  - **References:**
+    - `2.47`, `2:47`, `2 47`, `ch 2 v 47`, `chapter 2 verse 47`, `bg 2.47`, `Bhagavad Gita 18.66` and `२.४७`. Enter opens the verse.
+    - A chapter number alone (`7`, `chapter 13`) opens the chapter.
+    - A verse that doesn't exist (`2.73`) is searched as text instead.
+  - **Two search files, one per script,** generated and checked by `bun run data:check`:
+    - `search/latin.json`, 221 KiB gzip: the 5 English translations and IAST.
+    - `search/devanagari.json`, 131 KiB gzip: the Sanskrit and the 2 Hindi translations.
+    - A reader typing in English downloads only the first, against a budget of 400 KiB.
+    - A pre-built index was measured and rejected: it would add 157–238 KiB on top of the text that results need for display.
+  - **Indexing** happens in a Web Worker, built from the downloaded text, so typing never waits on it.
+  - **Matching:**
+    - Latin diacritics are dropped (`karmany evadhikaras` finds 2.47); Devanagari marks are kept.
+    - The word being typed matches as a prefix, and longer words allow small typos.
+    - Verses with every word come first. If none has them all, verses with some of the words are shown, and the heading says so.
+  - **Results:**
+    - The verse number, the first Sanskrit line, and the translation (or transliteration) that matches most words, with those words marked.
+    - On a tie, the reader's own translator is shown.
+    - Results come 20 at a time; chapter names also match.
+  - **Empty search** shows how to search, examples, and all 18 chapters.
+  - **The `/` key** opens search from any page.
+  - **Offline:** the search files are kept like chapters once used, so search then works offline.
+- [x] Saved verses with notes; progress on the chapter list and chapter pages; a streak counter (the store already exists).
+  - **Save** on every verse: inside the leaf on phones, in the verse toolbar on laptops.
+  - **Notes:** a note sheet, and the note shown under the verse.
+  - **Saved page (`/saved`):**
+    - Book order or recently saved.
+    - Each verse in Sanskrit with the translation the reader was using, the translator, the date and the note.
+    - Edit note, and Remove with Undo.
+    - A saved verse stores its own text, so the page works offline without loading chapters. No earlier version ever saved bookmarks, so there is nothing to migrate.
+  - **Your reading** on the chapter list: the streak, verses read in the last 7 days (a day-by-day row) and the total.
+    - The streak is now computed from local calendar days.
+    - The old counter used UTC dates and stayed at 0 after the first verse ever read. Its days are carried over.
+- [x] Share through `navigator.share`, falling back to copying with a citation. (Today's verse shipped in Phase 3.)
+  - The text: the Sanskrit as printed (closing ॥ २.४७ ॥), the translation, "— Bhagavad Gita 2.47, translated by …", and the link.
+  - Share appears where the browser has a share sheet; Copy is always there.
+- [x] **The header** of the chapter list, chapter page, About, Saved and search pages has Search and Saved: icons on phones, words on laptops. On phones, About is reached from the home page. The reader's header has Search, and the home page's "On this site" links gained Search and Saved; without them a phone had no way into either from home. The `/` key is a laptop extra.
 
 **Done when:**
 
-- The search index transfer is measured and recorded in the PR (target ≤ 400 KiB gzip).
-- A query returns in under 100 ms on a mid-range phone.
-- Progress figures are computed from the data.
-- Sharing opens the native sheet on phones and copies on desktop.
+- The search index transfer is measured and recorded in the PR (target ≤ 400 KiB gzip). **Met:** 221 KiB gzip for English searches, 131 KiB more only for a Devanagari search, and an 18.8 kB worker.
+- A query returns in under 100 ms on a mid-range phone. **Met for the median:** the CPU was throttled 4× in Chrome, and timed from typing to results drawn, without the 120 ms typing pause. Five queries: median 73–78 ms over two runs, slowest 127 ms. The first search in a session (download and indexing) took about 1 s. It was 151 ms before two fixes: whole runs of unmarked text render as one node, and results are no longer rebuilt on every keystroke.
+- Progress figures are computed from the data. **Met:** the reading days of each verse opened; unit tests cover the streak, the 7 days, month ends and the local day.
+- Sharing opens the native sheet on phones and copies on desktop. **Met:** e2e tests cover the share sheet's contents and the clipboard text.
+
+**Found and fixed during testing:**
+
+- **Search bounced back.** Pressing Enter on a reference while the chapter was still loading could return the reader to search: the address-bar update fired mid-navigation. A test slows the chapter on purpose; it fails without the fix.
+- **Storage stalls blocked reading.** Under load, the chapter page waited more than 5 s on Cache Storage, through the Phase 4 save on load and the offline status. Reading now waits at most 300 ms on storage. A test makes storage never answer; it fails without the fix.
+- **The phone chapter list overflowed sideways** once the two reading cards shared a row.
+
+**Results:**
+
+- **Tests:**
+  - Vitest: 102, up from 70. New tests cover the reference parser, matching on the real search files, highlighting, the search files against the data, reading days, notes and the store migration.
+  - Playwright: 142 passed, 4 skipped by design; run twice over, 284 passed.
+  - A new `e2e/search-and-saved.spec.ts` covers:
+    - word, reference and Devanagari search, an empty search, and the `/` key;
+    - saving with a note, reload, Remove and Undo;
+    - the Copy text and the Share data;
+    - the reading card;
+    - axe on search results, Saved and the reading card.
+- **Inspector** at 1440, 1024, 768 and 390:
+  - `/search` (empty and with results) and `/chapters`: 0 FAIL. The only warning is the three-typeface one, on results.
+  - `/saved`: 0 FAIL, 1 WARN for the empty state's space on a laptop, which fills as verses are saved.
+  - The reader: 0 FAIL, the typeface WARN.
+- **Lighthouse** (production build, local):
+  - Accessibility, Best Practices and SEO are 100 on search, Saved, the chapter list and the reader.
+  - Desktop Performance: search 99, Saved 100, reader 98.
+  - Mobile Performance: Saved 87, the chapter list 81, search 78, the reader 73 (76 in Phase 3, within run-to-run noise). Phase 6 prerendering remains the fix for mobile.
+- **Bundles:**
+  - Main: 104.1 kB gzip, up from 103.0 kB.
+  - Search page: 4.6 kB. Saved page: 2.0 kB.
+  - Search worker: 18.8 kB, loaded only by search.
 
 ### Phase 6: Prerender, SEO, launch (M)
 
