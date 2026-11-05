@@ -53,3 +53,10 @@ export const SPEAKER_NAMES: Record<Speaker, string> = {
 	sanjaya: "Sanjaya",
 	dhritarashtra: "Dhritarashtra",
 };
+
+// A long-metre verse has four quarter-lines; a wide screen sets each pair on one line, as printed editions do.
+export function halfVerses(lines: string[]) {
+	return lines.length === 4
+		? [`${lines[0]} ${lines[1]}`, `${lines[2]} ${lines[3]}`]
+		: lines;
+}

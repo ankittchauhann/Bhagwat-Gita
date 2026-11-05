@@ -16,6 +16,7 @@ import {
 	type SourceVerse,
 	buildData,
 	commentaryKey,
+	creditsFor,
 	sitemapXml,
 	validateBuiltData,
 } from "./gita-data";
@@ -85,6 +86,7 @@ async function build() {
 			);
 		}
 	}
+	await writeFile(path.join(DATA_DIR, "credits.json"), json(creditsFor(data)));
 	await writeFile(SITEMAP_FILE, sitemapXml(SITE_URL, data.chapterFiles));
 
 	report(data);
@@ -134,6 +136,13 @@ async function check() {
 
 	const data: BuiltData = { index, chapterFiles, commentary };
 	errors.push(...validateBuiltData(data));
+
+	const credits = await readFile(path.join(DATA_DIR, "credits.json"), "utf8");
+	if (credits !== json(creditsFor(data))) {
+		errors.push(
+			`public/data/${DATA_VERSION}/credits.json is out of date; run \`bun run data\``,
+		);
+	}
 
 	const sitemap = await readFile(SITEMAP_FILE, "utf8");
 	if (sitemap !== sitemapXml(SITE_URL, chapterFiles)) {

@@ -274,7 +274,7 @@ dialog.sheet {
 	border-radius: 8px 8px 0 0;
 	background: var(--leaf);
 	color: var(--ink);
-	box-shadow: 0 -8px 32px rgb(0 0 0 / 0.18);
+	box-shadow: 0 -8px 32px rgb(0 0 0 / 0.18); /* taste-skill-ignore: the sheet floats over the page */
 	overscroll-behavior: contain;
 }
 
@@ -312,6 +312,86 @@ dialog.sheet[open]::backdrop {
 	}
 }
 
+/* Paper edges cut into scallops: the pseudo-elements paint bites in the colour behind the sheet. */
+.scalloped,
+.scalloped-bottom,
+.scalloped-top-large {
+	position: relative;
+}
+
+.scalloped::before,
+.scalloped::after,
+.scalloped-bottom::after,
+.scalloped-top-large::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	height: 10px;
+	background: var(--scallop-color, var(--ground));
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='10'%3E%3Ccircle cx='10' cy='0' r='9'/%3E%3C/svg%3E")
+		repeat-x 0 0 / 20px 10px;
+	pointer-events: none;
+}
+
+.scalloped::before,
+.scalloped-top-large::before {
+	top: 0;
+}
+
+.scalloped::after,
+.scalloped-bottom::after {
+	bottom: 0;
+	transform: scaleY(-1);
+}
+
+.scalloped-top-large::before {
+	height: 24px;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='24'%3E%3Ccircle cx='24' cy='0' r='23'/%3E%3C/svg%3E")
+		repeat-x 0 0 / 48px 24px;
+}
+
+@media (min-width: 1024px) {
+	.scalloped-top-large::before {
+		height: 46px;
+		mask-size: 92px 46px;
+	}
+}
+
+/* Sections rise into view once, in reading order; see Reveal.tsx. */
+.reveal-ready [data-reveal] {
+	opacity: 0;
+	transform: translateY(24px);
+	transition: opacity 700ms ease-out, transform 700ms ease-out;
+	transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal-ready [data-reveal].is-revealed {
+	opacity: 1;
+	transform: none;
+}
+
+.crossfade > img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	opacity: 0;
+	transition: opacity 1600ms ease-in-out;
+}
+
+.crossfade > img[data-active="true"] {
+	opacity: 1;
+}
+
+@media print {
+	.reveal-ready [data-reveal] {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
@@ -321,5 +401,10 @@ dialog.sheet[open]::backdrop {
 		animation: none !important;
 		transition: none !important;
 		scroll-behavior: auto !important;
+	}
+
+	.reveal-ready [data-reveal] {
+		opacity: 1;
+		transform: none;
 	}
 }

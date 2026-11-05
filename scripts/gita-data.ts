@@ -3,6 +3,7 @@ import {
 	type ChapterFile,
 	type ChapterInfo,
 	type ChaptersIndex,
+	type Credits,
 	type Language,
 	SPEAKERS,
 	type Speaker,
@@ -467,10 +468,43 @@ export function validateBuiltData(data: BuiltData): string[] {
 	return errors;
 }
 
+export function creditsFor(data: BuiltData): Credits {
+	const speakers = Object.fromEntries(
+		SPEAKERS.map((speaker) => [speaker, 0]),
+	) as Record<Speaker, number>;
+	let verses = 0;
+	let commentaries = 0;
+	for (const file of data.chapterFiles) {
+		for (const verse of file.verses) {
+			verses += 1;
+			speakers[verse.speaker] += 1;
+			commentaries += verse.commentators.length;
+		}
+	}
+	const [first] = data.chapterFiles;
+	const translators = first?.translators ?? [];
+	const commentators = first?.commentators ?? [];
+	return {
+		source: data.index.source,
+		counts: {
+			chapters: data.index.chapters.length,
+			verses,
+			translators: translators.length,
+			commentators: commentators.length,
+			commentaries,
+		},
+		speakers,
+		translators,
+		commentators,
+	};
+}
+
 export function sitemapXml(siteUrl: string, chapterFiles: ChapterFile[]) {
 	const paths = [
 		"/",
 		"/chapters",
+		"/about",
+		...chapterFiles.map((file) => `/chapter/${file.chapter.number}`),
 		...chapterFiles.flatMap((file) =>
 			file.verses.map(
 				(verse) => `/chapter/${file.chapter.number}/verse/${verse.number}`,

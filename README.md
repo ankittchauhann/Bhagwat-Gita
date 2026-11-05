@@ -10,14 +10,18 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 
 ### 🏛️ **Home**
 
-- **Start or continue**: "Start reading" on a first visit, "Continue at 2.47" afterwards, plus a list of recently read verses
-- **A verse to begin with**: one of eight well-known verses, shown from the dataset with its translator named
+- **The manuscript as the page**: a striped title card beside three manuscript pages of the Gita (Devanagari, Gurmukhi, Bengali) that crossfade slowly
+- **Start or continue**: "Start reading" on a first visit, "Continue at 2.47" afterwards
+- **Today's verse**: the same verse for everyone on a given day, one verse a day in order through all 701, shown in Sanskrit, transliteration or translation
+- **Contents**: all 18 chapters on a printed sheet, in the traditional three groups of six (Karma, Bhakti, Jñāna)
+- **Figures from the data**: chapters, verses (574 spoken by Krishna, 86 by Arjuna), translations and commentaries
 - **Theme**: follows the system setting, or Light or Dark when chosen
 
-### 📖 **Chapter list**
+### 📖 **Chapters**
 
-- **All 18 chapters** as compact rows: number, Sanskrit name, English name and meaning, verse count
-- **Search** across Sanskrit names, transliterations and meanings
+- **Chapter list**: the 18 chapters in three groups of six, each with its Sanskrit and English name, meaning and your progress ("12 / 72"); a "Continue where you stopped" row; search across names and meanings
+- **Chapter page** (`/chapter/2`): the chapter's names, "Continue at 2.48" or "Start reading at 2.1", progress, how many verses each speaker has, the summary in English or Hindi, and every verse as a grid
+- **About and sources** (`/about`): where the text, every translation, every commentary, the pictures and the fonts come from, and their terms
 - **Bundled data**: every chapter ships with the app; nothing depends on a third-party API
 
 ### 🎯 **Verse reader** (built phone first)
@@ -91,7 +95,9 @@ public/data/v2/
   chapters.json                      # 18 chapters: names, meanings, English and Hindi summaries
   chapter/{1..18}.json               # every verse: speaker, Sanskrit lines, transliteration, word meanings, 7 translations
   commentary/{chapter}/{verse}.json  # 16 commentators, loaded only when the reader opens commentary
-public/sitemap.xml                   # home, chapter list and all 701 verse URLs
+  credits.json                       # counts, speakers, translators and commentators (home figures, About)
+public/sitemap.xml                   # 722 URLs: home, chapter list, About, 18 chapters, 701 verses
+public/images/                       # six Wikimedia Commons pictures (CC BY-SA 4.0), resized only
 ```
 
 - `bun run data` downloads the pinned source, rebuilds these files and validates them (18 chapters, 701 verses, 7 translations per verse, every commentary file present, every chapter opening with a speaker line).
@@ -153,14 +159,21 @@ No API key or environment variables are needed.
 │   ├── components/
 │   │   ├── ui/                     # Button, sheet, disclosure, segmented control, switch, radio list
 │   │   ├── reader/                 # Verse reader: page, verse leaf, study sections, settings and verse-grid sheets
-│   │   ├── Dashboard.tsx           # Home page
-│   │   ├── ChaptersPage.tsx        # All chapters with search
-│   │   ├── ContinueReading.tsx     # Recently read verses
+│   │   ├── home/                   # Home page: title card, crossfade, today's verse, scroll-in motion
+│   │   ├── AboutPage.tsx           # Sources and credits
+│   │   ├── AppHeader.tsx           # Header of the home, chapter, list, About and 404 pages
+│   │   ├── ChapterOverview.tsx     # Chapter page
+│   │   ├── ChaptersPage.tsx        # All chapters in three groups, with progress and search
+│   │   ├── VerseGrid.tsx           # A chapter's verses as a grid (chapter page and reader)
 │   │   ├── RouteHead.tsx           # Per-page title, description, canonical link
 │   │   ├── RouteStatus.tsx         # Loading, error and not-found pages
 │   │   └── ThemeToggle.tsx         # Dark theme button on the home page
 │   ├── lib/
 │   │   ├── gitaData.ts             # Data types, cached loaders, URL parsing
+│   │   ├── chapterGroups.ts        # Karma 1–6, Bhakti 7–12, Jñāna 13–18
+│   │   ├── credits.ts              # Pictures, fonts and links credited on About
+│   │   ├── progress.ts             # Verses read per chapter and where "Continue" leads
+│   │   ├── todaysVerse.ts          # The verse for a calendar day
 │   │   ├── site.ts                 # Production URL and default metadata
 │   │   └── theme.ts                # System, Light or Dark (mirrors the inline script in index.html)
 │   ├── store/
@@ -170,7 +183,8 @@ No API key or environment variables are needed.
 │   │   ├── __root.tsx
 │   │   ├── index.tsx                              # /
 │   │   ├── chapters.tsx                           # /chapters
-│   │   ├── chapter.$chapterId.index.tsx           # /chapter/2 and old ?verse= links → redirect
+│   │   ├── about.tsx                              # /about
+│   │   ├── chapter.$chapterId.index.tsx           # /chapter/2 (old ?verse= links redirect to the verse)
 │   │   └── chapter.$chapterId.verse.$verseNumber.tsx  # /chapter/2/verse/47
 │   └── styles.css
 └── vite.config.ts
@@ -280,7 +294,7 @@ The phases, their acceptance criteria and their status are in [REDESIGN_ACTION_P
 - [x] Phase 0: hygiene and guardrails
 - [x] Phase 1: static data, verse URLs, bug fixes
 - [x] Phase 2: design system and the mobile reader
-- [ ] Phase 3: chapter list, chapter page, home, About
+- [x] Phase 3: chapter list, chapter page, home, About
 - [ ] Phase 4: recorded recitation and offline reading
 - [ ] Phase 5: search, saved verses, progress, sharing, today's verse
 - [ ] Phase 6: prerendering, SEO, launch
@@ -319,6 +333,7 @@ The source code is licensed under the **MIT License** - see the [LICENSE](LICENS
 - **Sanskrit verses** are public domain. **Translations and commentaries** remain the copyright of their authors and are used under the publisher's terms ([bhagavadgita.com/copyright](https://bhagavadgita.com/copyright)): non-commercial use only, with attribution and the content kept intact. This app must therefore stay free of ads and paid features.
 - **Translators**: Swami Sivananda, Swami Adidevananda, Swami Gambirananda, Dr. S. Sankaranarayan, Shri Purohit Swami (English); Swami Ramsukhdas, Swami Tejomayananda (Hindi).
 - **Commentators**: Swami Sivananda (English); Swami Chinmayananda, Swami Ramsukhdas (Hindi); Sri Abhinavgupta, Sri Anandgiri, Sri Dhanpati, Sri Jayatritha, Sri Madhavacharya, Sri Madhusudan Saraswati, Sri Neelkanth, Sri Purushottamji, Sri Ramanujacharya, Sri Shankaracharya, Sri Sridhara Swami, Sri Vallabhacharya, Sri Vedantadeshikacharya Venkatanatha (Sanskrit).
+- **Pictures**: six manuscript and relief photographs from Wikimedia Commons by Ms Sarah Welch and Michael Gunther, CC BY-SA 4.0, resized only; each is listed with its source on the About page.
 
 ### **Technical Foundation**
 

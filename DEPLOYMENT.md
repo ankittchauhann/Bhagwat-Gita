@@ -26,7 +26,11 @@ After deployment, these should all load:
 - `https://bhagwat-gita-iota.vercel.app/chapters`
 - `https://bhagwat-gita-iota.vercel.app/chapter/2/verse/47`
 - `https://bhagwat-gita-iota.vercel.app/chapter/2?verse=47` (redirects to the line above)
+- `https://bhagwat-gita-iota.vercel.app/chapter/2` (the chapter page)
+- `https://bhagwat-gita-iota.vercel.app/about`
 - `https://bhagwat-gita-iota.vercel.app/data/v2/chapter/2.json`
+- `https://bhagwat-gita-iota.vercel.app/data/v2/credits.json`
+- `https://bhagwat-gita-iota.vercel.app/images/gita-4-7-devanagari-900.jpg`
 - `https://bhagwat-gita-iota.vercel.app/sitemap.xml`
 
 and `https://bhagwat-gita-iota.vercel.app/chapter/99` should show the "Page not found" page.

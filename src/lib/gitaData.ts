@@ -34,6 +34,20 @@ export interface ChaptersIndex {
 	chapters: ChapterInfo[];
 }
 
+export interface Credits {
+	source: { repository: string; commit: string };
+	counts: {
+		chapters: number;
+		verses: number;
+		translators: number;
+		commentators: number;
+		commentaries: number;
+	};
+	speakers: Record<Speaker, number>;
+	translators: Author[];
+	commentators: Author[];
+}
+
 export interface Verse {
 	number: number;
 	speaker: Speaker;
@@ -98,6 +112,10 @@ function loadJson<T>(path: string): Promise<T> {
 
 export function loadChapters() {
 	return loadJson<ChaptersIndex>("/chapters.json");
+}
+
+export function loadCredits() {
+	return loadJson<Credits>("/credits.json");
 }
 
 export function loadChapter(chapterNumber: number) {

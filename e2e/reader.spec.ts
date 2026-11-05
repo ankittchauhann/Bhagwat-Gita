@@ -333,7 +333,7 @@ test("a keyboard alone can reach every control, use the settings sheet and turn 
 	}
 	expect(names).toEqual([
 		"Skip to verse",
-		"All chapters",
+		"Chapter 2 overview",
 		"Reading settings",
 		"Previous verse, 2.46",
 		"Next verse, 2.48",
@@ -386,13 +386,16 @@ test("verse changes do not animate when reduced motion is requested", async ({
 	).toBe("none");
 });
 
-test("old links redirect to the verse URL", async ({ page }) => {
+test("old links with ?verse= still open the verse", async ({ page }) => {
 	await page.goto("/chapter/2?verse=47");
 	await expect(page).toHaveURL(/\/chapter\/2\/verse\/47$/);
 	await expect(verseHeading(page, 2, 47)).toBeVisible();
 
 	await page.goto("/chapter/3");
-	await expect(page).toHaveURL(/\/chapter\/3\/verse\/1$/);
+	await expect(page).toHaveURL(/\/chapter\/3$/);
+	await expect(
+		page.getByRole("heading", { level: 1, name: "Karma Yoga" }),
+	).toBeVisible();
 });
 
 for (const path of [
@@ -507,8 +510,10 @@ test("home, chapter list and continue reading work together", async ({
 	page,
 }) => {
 	await page.goto("/");
-	await expect(page.locator("figure blockquote p[lang=sa]")).toBeVisible();
-	await page.getByRole("link", { name: "All chapters" }).click();
+	await page
+		.getByRole("navigation", { name: "On this site" })
+		.getByRole("link", { name: "Chapters" })
+		.click();
 	await expect(page).toHaveURL(/\/chapters$/);
 	const chapters = page.locator("main ol > li > a");
 	await expect(chapters).toHaveCount(18);
@@ -518,13 +523,11 @@ test("home, chapter list and continue reading work together", async ({
 		.fill("Sankhya");
 	await expect(chapters).toHaveCount(1);
 	await chapters.click();
-	await expect(page).toHaveURL(/\/chapter\/2\/verse\/1$/);
+	await expect(page).toHaveURL(/\/chapter\/2$/);
+	await page.getByRole("link", { name: "Start reading at 2.1" }).click();
 	await expect(verseHeading(page, 2, 1)).toBeVisible();
 
 	await page.goto("/");
-	await expect(
-		page.getByRole("heading", { name: "Recently read" }),
-	).toBeVisible();
 	await page.getByRole("link", { name: "Continue at 2.1" }).click();
 	await expect(page).toHaveURL(/\/chapter\/2\/verse\/1$/);
 });
