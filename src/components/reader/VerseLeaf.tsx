@@ -1,17 +1,46 @@
 import type { Author, Verse } from "@/lib/gitaData";
+import { cn } from "@/lib/utils";
 import { usePreferences } from "@/store/preferencesStore";
 import { devanagariNumber } from "./verseNavigation";
 
 const DEVANAGARI = /[ऀ-ॿ]/;
 
+// A long-metre verse has four quarter-lines; a wide screen sets each pair on one line, as printed editions do.
+function halfVerses(lines: string[]) {
+	return lines.length === 4
+		? [`${lines[0]} ${lines[1]}`, `${lines[2]} ${lines[3]}`]
+		: lines;
+}
+
+export function ChangeButton({
+	label,
+	onClick,
+}: {
+	label: string;
+	onClick: () => void;
+}) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			aria-label={label}
+			className="-mr-3 min-h-11 shrink-0 rounded-[6px] px-3 text-[14px] font-semibold text-ink underline decoration-control underline-offset-4 hover:bg-surface"
+		>
+			Change
+		</button>
+	);
+}
+
 export function VerseLeaf({
 	chapterNumber,
 	verse,
+	wide,
 	translator,
 	onChangeTranslator,
 }: {
 	chapterNumber: number;
 	verse: Verse;
+	wide: boolean;
 	translator: Author | undefined;
 	onChangeTranslator: () => void;
 }) {
@@ -19,17 +48,33 @@ export function VerseLeaf({
 		(state) => state.showTransliteration,
 	);
 	const translation = translator ? verse.translations[translator.id] : "";
-	const lastLine = verse.lines.length - 1;
+	const lines = wide ? halfVerses(verse.lines) : verse.lines;
+	const transliteration = wide
+		? halfVerses(verse.transliteration)
+		: verse.transliteration;
+	const lastLine = lines.length - 1;
 
 	return (
-		<article className="mt-4 rounded-[8px] bg-leaf px-5 py-6 md:px-10 md:py-9">
+		<article
+			className={cn(
+				"ruled-leaf mt-4 rounded-[8px] bg-leaf",
+				wide ? "px-30 pt-9 pb-10 text-center" : "px-7 py-6 md:px-12 md:py-9",
+			)}
+		>
 			{verse.speakerLine && (
 				<p lang="sa" className="mb-1 font-sanskrit text-[17px] text-muted">
 					{verse.speakerLine.sanskrit}
 				</p>
 			)}
-			<p lang="sa" className="text-sanskrit verse-lines">
-				{verse.lines.map((line, index) => (
+			<p
+				lang="sa"
+				className={cn(
+					"verse-sanskrit verse-lines",
+					wide && "text-center",
+					wide && verse.lines.length === 4 && "long-metre",
+				)}
+			>
+				{lines.map((line, index) => (
 					<span key={line}>
 						{line}
 						{index === lastLine && (
@@ -47,11 +92,16 @@ export function VerseLeaf({
 			</p>
 
 			{showTransliteration && (
-				<p className="text-transliteration verse-lines mt-4 text-muted">
+				<p
+					className={cn(
+						"transliteration-text verse-lines text-muted",
+						wide ? "mt-5 text-center" : "mt-4",
+					)}
+				>
 					{verse.speakerLine && (
 						<span lang="sa-Latn">{verse.speakerLine.transliteration}</span>
 					)}
-					{verse.transliteration.map((line) => (
+					{transliteration.map((line) => (
 						<span key={line} lang={DEVANAGARI.test(line) ? "sa" : "sa-Latn"}>
 							{line}
 						</span>
@@ -59,24 +109,17 @@ export function VerseLeaf({
 				</p>
 			)}
 
-			{translator && translation && (
+			{!wide && translator && translation && (
 				<div className="mt-6 border-t pt-5">
-					<p
-						lang={translator.language === "hindi" ? "hi" : "en"}
-						className="text-reading"
-					>
+					<p lang="en" className="reading-text">
 						{translation}
 					</p>
 					<p className="mt-3 flex min-h-11 items-center justify-between gap-4 text-[14px] text-muted">
 						<span>{translator.name}</span>
-						<button
-							type="button"
+						<ChangeButton
+							label="Change English translation"
 							onClick={onChangeTranslator}
-							aria-label="Change translation"
-							className="-mr-3 min-h-11 rounded-[6px] px-3 font-semibold text-ink underline decoration-control underline-offset-4 hover:bg-surface"
-						>
-							Change
-						</button>
+						/>
 					</p>
 				</div>
 			)}

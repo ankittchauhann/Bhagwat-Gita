@@ -1,5 +1,7 @@
-import { IconButton, iconButtonClass } from "@/components/ui/button";
+import { Button, IconButton, iconButtonClass } from "@/components/ui/button";
 import { loadChapter } from "@/lib/gitaData";
+import { WIDE_SCREEN, useMediaQuery } from "@/lib/useMediaQuery";
+import { cn } from "@/lib/utils";
 import { usePreferences } from "@/store/preferencesStore";
 import { useReadingHistory } from "@/store/readingHistoryStore";
 import {
@@ -8,19 +10,19 @@ import {
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
-import {
-	ALargeSmall,
-	ArrowLeft,
-	ChevronDown,
-	ChevronLeft,
-	ChevronRight,
-} from "lucide-react";
+import { ALargeSmall, ArrowLeft, ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { SettingsSheet, TRANSLATION_SECTION_ID } from "./SettingsSheet";
+import { ChapterRuler, ProgressStrip, StepLink } from "./ChapterRuler";
+import {
+	HINDI_SECTION_ID,
+	SettingsSheet,
+	TRANSLATION_SECTION_ID,
+} from "./SettingsSheet";
+import { TranslationColumns } from "./TranslationColumns";
 import { VerseGridSheet } from "./VerseGridSheet";
 import { VerseLeaf } from "./VerseLeaf";
-import { VerseStudy } from "./VerseStudy";
+import { VerseStudy, WideStudy } from "./VerseStudy";
 import { useSwipe } from "./useSwipe";
 import {
 	SPEAKER_NAMES,
@@ -66,8 +68,10 @@ export function ReaderPage() {
 			hindiTranslatorId: state.hindiTranslatorId,
 			sanskritSize: state.sanskritSize,
 			translationSize: state.translationSize,
+			showHindi: state.showHindi,
 		})),
 	);
+	const wide = useMediaQuery(WIDE_SCREEN);
 	const { setLastPosition, addToHistory, markVerseAsRead } =
 		useReadingHistory();
 	const [sheet, setSheet] = useState<OpenSheet>(null);
@@ -196,9 +200,19 @@ export function ReaderPage() {
 	return (
 		<div className="min-h-dvh bg-ground">
 			<header
-				className={`sticky top-0 z-20 border-b bg-ground ${scrolled ? "" : "border-transparent"}`}
+				className={cn(
+					"sticky top-0 z-20 border-b bg-ground",
+					!scrolled && "border-transparent",
+				)}
 			>
-				<div className="relative mx-auto flex h-12 max-w-[720px] items-center gap-1 px-2 md:px-4">
+				<div
+					className={cn(
+						"relative mx-auto flex items-center gap-1",
+						wide
+							? "h-14 max-w-[1208px] px-4"
+							: "h-12 max-w-[720px] px-2 md:px-4",
+					)}
+				>
 					<a
 						href="#verse"
 						className="sr-only focus:not-sr-only focus:absolute focus:top-1 focus:left-2 focus:z-30 focus:rounded-[6px] focus:bg-ink focus:px-4 focus:py-2.5 focus:font-semibold focus:text-ground"
@@ -214,15 +228,38 @@ export function ReaderPage() {
 					</Link>
 					<p className="min-w-0 flex-1 truncate text-[15px] font-semibold">
 						Chapter {chapter.number}
-						<span className="text-muted"> · {chapter.nameTranslation}</span>
+						<span className="text-muted">
+							{" "}
+							· {chapter.nameTranslation}
+							{wide && ` · ${chapter.nameMeaning}`}
+						</span>
 					</p>
-					<IconButton
-						label="Reading settings"
-						onClick={() => setSheet({ kind: "settings", section: null })}
-					>
-						<ALargeSmall aria-hidden="true" />
-					</IconButton>
+					{wide ? (
+						<Button
+							onClick={() => setSheet({ kind: "settings", section: null })}
+						>
+							<ALargeSmall aria-hidden="true" />
+							Reading settings
+						</Button>
+					) : (
+						<IconButton
+							label="Reading settings"
+							onClick={() => setSheet({ kind: "settings", section: null })}
+						>
+							<ALargeSmall aria-hidden="true" />
+						</IconButton>
+					)}
 				</div>
+				{wide && (
+					<ChapterRuler
+						chapterNumber={chapter.number}
+						versesCount={chapter.versesCount}
+						current={verseNumber}
+						previous={previous}
+						next={next}
+						blocked={isNavigating}
+					/>
+				)}
 			</header>
 
 			<main
@@ -231,11 +268,26 @@ export function ReaderPage() {
 				tabIndex={-1}
 				data-sanskrit-size={preferences.sanskritSize}
 				data-translation-size={preferences.translationSize}
-				className="mx-auto w-full max-w-[720px] px-4 pt-3 pb-[calc(var(--bottom-bar)+2.5rem)] md:px-6"
+				className={cn(
+					"mx-auto w-full",
+					wide
+						? "max-w-[1208px] px-6 pt-4 pb-20"
+						: "max-w-[720px] px-4 pt-3 pb-[calc(var(--bottom-bar)+2.5rem)] md:px-6",
+				)}
 			>
-				<div className="flex items-start justify-between gap-4">
-					<div className="min-w-0">
-						<h1 className="text-[20px] leading-7 font-bold tabular-nums">
+				<div
+					className={cn(
+						"flex justify-between gap-4",
+						wide ? "items-center" : "items-start",
+					)}
+				>
+					<div className={cn("min-w-0", wide && "flex items-baseline gap-4")}>
+						<h1
+							className={cn(
+								"leading-7 font-bold tabular-nums",
+								wide ? "text-[24px]" : "text-[20px]",
+							)}
+						>
 							<span aria-hidden="true">{reference(current)}</span>
 							<span className="sr-only">
 								Chapter {chapter.number}, verse {verseNumber}
@@ -255,6 +307,14 @@ export function ReaderPage() {
 						<ChevronDown aria-hidden="true" className="size-4 text-muted" />
 					</button>
 				</div>
+				{!wide && (
+					<ProgressStrip
+						chapterNumber={chapter.number}
+						versesCount={chapter.versesCount}
+						current={verseNumber}
+						onOpen={() => setSheet({ kind: "verses" })}
+					/>
+				)}
 
 				<div
 					key={shown.key}
@@ -265,59 +325,61 @@ export function ReaderPage() {
 					<VerseLeaf
 						chapterNumber={chapter.number}
 						verse={verse}
+						wide={wide}
 						translator={translator}
 						onChangeTranslator={() =>
 							setSheet({ kind: "settings", section: TRANSLATION_SECTION_ID })
 						}
 					/>
-					<VerseStudy
-						chapterNumber={chapter.number}
-						verse={verse}
-						hindiTranslator={hindiTranslator}
-						commentators={verseCommentators}
-					/>
+					{wide ? (
+						<>
+							<TranslationColumns
+								verse={verse}
+								englishTranslator={translator}
+								hindiTranslator={hindiTranslator}
+								showHindi={preferences.showHindi}
+								onChange={(language) =>
+									setSheet({
+										kind: "settings",
+										section:
+											language === "Hindi"
+												? HINDI_SECTION_ID
+												: TRANSLATION_SECTION_ID,
+									})
+								}
+							/>
+							<WideStudy
+								chapterNumber={chapter.number}
+								verse={verse}
+								commentators={verseCommentators}
+							/>
+						</>
+					) : (
+						<VerseStudy
+							chapterNumber={chapter.number}
+							verse={verse}
+							hindiTranslator={hindiTranslator}
+							commentators={verseCommentators}
+						/>
+					)}
 				</div>
 			</main>
 
-			<nav
-				aria-label="Previous and next verse"
-				className="fixed inset-x-0 bottom-0 z-20 border-t bg-ground pb-[env(safe-area-inset-bottom)]"
-			>
-				<div className="mx-auto flex h-14 max-w-[720px] items-stretch justify-between px-2 md:px-4">
-					{previous ? (
-						<Link
-							to="/chapter/$chapterId/verse/$verseNumber"
-							params={verseParams(previous)}
-							replace
-							resetScroll={false}
-							onClick={(event) => isNavigating() && event.preventDefault()}
-							aria-label={`Previous verse, ${reference(previous)}`}
-							className="inline-flex min-w-28 items-center gap-1 rounded-[6px] px-2 text-[16px] font-semibold tabular-nums hover:bg-surface"
-						>
-							<ChevronLeft aria-hidden="true" className="size-5" />
-							{reference(previous)}
-						</Link>
-					) : (
-						<span />
-					)}
-					{next ? (
-						<Link
-							to="/chapter/$chapterId/verse/$verseNumber"
-							params={verseParams(next)}
-							replace
-							resetScroll={false}
-							onClick={(event) => isNavigating() && event.preventDefault()}
-							aria-label={`Next verse, ${reference(next)}`}
-							className="inline-flex min-w-28 items-center justify-end gap-1 rounded-[6px] px-2 text-[16px] font-semibold tabular-nums hover:bg-surface"
-						>
-							{reference(next)}
-							<ChevronRight aria-hidden="true" className="size-5" />
-						</Link>
-					) : (
-						<span />
-					)}
-				</div>
-			</nav>
+			{!wide && (
+				<nav
+					aria-label="Previous and next verse"
+					className="fixed inset-x-0 bottom-0 z-20 border-t bg-ground pb-[env(safe-area-inset-bottom)]"
+				>
+					<div className="mx-auto flex h-14 max-w-[720px] items-stretch justify-between px-2 md:px-4">
+						<StepLink
+							target={previous}
+							direction="previous"
+							blocked={isNavigating}
+						/>
+						<StepLink target={next} direction="next" blocked={isNavigating} />
+					</div>
+				</nav>
+			)}
 
 			<p aria-live="polite" className="sr-only">
 				{shown.direction

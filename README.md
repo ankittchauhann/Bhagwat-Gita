@@ -54,7 +54,7 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 ### 🎨 **Design**
 
 - **The manuscript page as the reading surface**: black ink on paper, with red kept for the ॥ verse markers and the current verse, as a scribe would use it
-- **Phone first**: designed at 390px; tablets and desktops centre the same column
+- **Phone first, laptop wide**: designed at 390px. From 1024px the reader uses the whole screen: a chapter ruler, a wide manuscript leaf, English and Hindi side by side, then commentary and word meanings. The layouts were explored in Claude Design first ([Gita Reader Layouts](https://claude.ai/artifact/9N4h8aeA9XwmffeQAySCSm))
 - **Accessible**: WCAG 2.2 AA checked with axe in light and dark themes, full keyboard use, screen-reader announcements on verse change, `lang` on every Sanskrit, Hindi and transliterated passage, reduced motion honoured
 - **Calm motion**: a 160 ms slide between verses and a 220 ms sheet, both off under reduced motion
 
@@ -72,7 +72,7 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 - **Tailwind CSS 4.0** with the colour and type tokens in `src/styles.css`
 - **Own base components** in `src/components/ui/`: button, sheet (native `<dialog>`), disclosure, segmented control, switch, radio list
 - **Lucide React** for icons
-- **Fonts** (self-hosted with Fontsource): Tiro Devanagari Sanskrit and Hindi, Source Serif 4, Libre Franklin
+- **Fonts** (self-hosted with Fontsource): Tiro Devanagari Sanskrit (for both Sanskrit and Hindi), Source Serif 4, Libre Franklin
 
 ### **Development & Build Tools**
 
@@ -234,7 +234,7 @@ The tokens live in `src/styles.css`; the full rationale and measured contrast ar
 
 ```css
 --font-sanskrit: "Tiro Devanagari Sanskrit"   /* the verse, 24px on phones, 30px on desktop */
---font-hindi:    "Tiro Devanagari Hindi"      /* Hindi translation and commentary */
+--font-hindi:    var(--font-sanskrit)         /* Hindi in the same traditional face */
 --font-serif:    "Source Serif 4 Variable"    /* English reading text; italic for IAST */
 --font-sans:     "Libre Franklin Variable"    /* interface, headings, numbers */
 ```
@@ -322,7 +322,7 @@ The source code is licensed under the **MIT License** - see the [LICENSE](LICENS
 
 ### **Technical Foundation**
 
-- **Fonts** under the SIL Open Font License 1.1: Tiro Devanagari Sanskrit and Hindi (Tiro Typeworks), Source Serif 4 (Adobe), Libre Franklin (Impallari Type)
+- **Fonts** under the SIL Open Font License 1.1: Tiro Devanagari Sanskrit (Tiro Typeworks), Source Serif 4 (Adobe), Libre Franklin (Impallari Type)
 - **Tailwind CSS** for expressive, maintainable styling
 - **TanStack Router** for elegant routing solutions
 - **Zustand** for simple, effective state management

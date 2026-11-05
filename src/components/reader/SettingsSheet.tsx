@@ -23,6 +23,7 @@ const SIZE_OPTIONS: { value: TextSize; label: string }[] = [
 ];
 
 export const TRANSLATION_SECTION_ID = "settings-translation";
+export const HINDI_SECTION_ID = "settings-hindi";
 
 export function SettingsSheet({
 	open,
@@ -113,14 +114,16 @@ export function SettingsSheet({
 						}
 					/>
 				</div>
-				<RadioList
-					legend="Hindi translation"
-					options={authorOptions("hindi")}
-					value={preferences.hindiTranslatorId}
-					onChange={(hindiTranslatorId) =>
-						preferences.setPreferences({ hindiTranslatorId })
-					}
-				/>
+				<div id={HINDI_SECTION_ID} className="scroll-mt-4">
+					<RadioList
+						legend="Hindi translation"
+						options={authorOptions("hindi")}
+						value={preferences.hindiTranslatorId}
+						onChange={(hindiTranslatorId) =>
+							preferences.setPreferences({ hindiTranslatorId })
+						}
+					/>
+				</div>
 			</div>
 		</Sheet>
 	);

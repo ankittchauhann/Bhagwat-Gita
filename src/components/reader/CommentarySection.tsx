@@ -31,10 +31,12 @@ export function CommentarySection({
 	chapterNumber,
 	verseNumber,
 	commentators,
+	wide = false,
 }: {
 	chapterNumber: number;
 	verseNumber: number;
 	commentators: Author[];
+	wide?: boolean;
 }) {
 	const selectId = useId();
 	const { commentaryOpen, commentatorId, setPreferences } = usePreferences(
@@ -139,7 +141,7 @@ export function CommentarySection({
 					{state.status === "ready" && (
 						<p
 							lang={LANGUAGE_TAGS[selected.language]}
-							className="text-reading whitespace-pre-line"
+							className={`reading-text whitespace-pre-line ${wide ? "study-text max-w-[44rem]" : ""}`}
 						>
 							{state.commentary[selected.id]}
 						</p>

@@ -60,7 +60,7 @@ export function Dashboard() {
 
 					<figure className="rounded-[8px] bg-leaf p-6 md:p-8">
 						<blockquote>
-							<p lang="sa" className="text-sanskrit verse-lines">
+							<p lang="sa" className="verse-sanskrit verse-lines">
 								{featured.lines.map((line, index) => (
 									<span key={line}>
 										{line}
@@ -79,7 +79,7 @@ export function Dashboard() {
 									</span>
 								))}
 							</p>
-							<p className="text-reading mt-5 border-t pt-5">
+							<p className="reading-text mt-5 border-t pt-5">
 								{featured.translation}
 							</p>
 						</blockquote>

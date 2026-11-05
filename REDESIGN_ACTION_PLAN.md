@@ -315,7 +315,7 @@ Rules that follow from the measurements:
 | Role | Face | Package (verified on npm) | Phone → desktop | Leading |
 | --- | --- | --- | --- | --- |
 | Sanskrit verse | Tiro Devanagari Sanskrit 400 | `@fontsource/tiro-devanagari-sanskrit` 5.3.0 | 24 → 30px | 1.8 |
-| Hindi translation and commentary | Tiro Devanagari Hindi 400 | `@fontsource/tiro-devanagari-hindi` 5.3.0 | 18 → 20px | 1.75 |
+| Hindi translation and commentary | Tiro Devanagari Sanskrit 400 (the Hindi cut was dropped in the laptop-layout follow-up: the inspector counted it as a fourth face and it cost 99 kB; Gita Press sets its Hindi in the same traditional style) | as above | 18 → 21px | 1.75 |
 | English reading text (italic for transliteration) | Source Serif 4 (variable) | `@fontsource-variable/source-serif-4` 5.3.1 | 17 → 19px | 1.55 |
 | Headings, interface, numbers | Libre Franklin (variable) 600/700 | `@fontsource-variable/libre-franklin` 5.3.0 | Interface 15–16px; screen titles 20–24px | 1.2 |
 | Home h1 | Libre Franklin 700, tracking −0.035em | as above | `8vw` (≈ 31px at 390) → `3.6vw` (max 56px) | 0.92–1.05 |
@@ -402,7 +402,7 @@ The crossfade shows one text in four scripts. Download the images with `assets.m
   - Skeleton at real size only while the chapter file is uncached.
   - Errors in place, with Retry.
   - A verse number past the chapter's count shows the 404 page, with a link to the chapter.
-- **Larger screens.** Tablet (≥ 768px) keeps one column with a wider measure. Desktop (≥ 1100px) centres the leaf; P2 adds a right-hand column to compare commentaries.
+- **Larger screens (revised after Phase 2, see "Phase 2 follow-up").** Tablet (768–1023px) keeps one column with a larger type step. Laptop and desktop (≥ 1024px) use the full 1208px column: a chapter ruler with previous and next under the top bar; a wide pothi leaf with red-ruled margins and the verse centred at up to 40px; English and Hindi side by side; then commentary and word meanings in the same two columns.
 
 #### B. Chapter page: `/chapter/:c`
 
@@ -712,6 +712,60 @@ graph LR
 - **Clearing reading history** moves to Phase 5, together with saved verses and progress.
 - **Save, Share and Copy** stay in Phase 5, as planned.
 - **Speaker label** reads "Krishna said" rather than "Sri Bhagavan said"; the Sanskrit "श्री भगवानुवाच" line is shown on the first verse of each of his speeches.
+
+### Phase 2 follow-up: laptop layout
+
+**Status: done** on branch `feature/laptop-reader-layout`.
+
+**Why.** Phase 2 centred the phone column on every screen, so at 1440px about half the laptop screen was empty. The owner rejected that, and asked why Claude Design had not been used before coding.
+
+**How it was decided.** Three directions were drawn in Claude Design with real content (verse 2.47), each at laptop size, plus the chosen one on a phone: [Gita Reader Layouts](https://claude.ai/artifact/9N4h8aeA9XwmffeQAySCSm).
+
+- **A. Study desk:** a verse list down the left edge, the verse in the middle, and a study column on the right with tabs.
+- **B. Pothi leaf:** a wide landscape leaf, like a palm-leaf manuscript, with red-ruled margins; English and Hindi side by side underneath.
+- **C. Parallel edition:** Sanskrit, English and Hindi in three columns.
+
+The owner delegated the choice. **B was chosen**:
+
+- It takes its shape from the subject: Gita manuscripts were written on landscape leaves.
+- It gives the verse the most presence.
+- It shows both translations without a click.
+
+A's verse list became the chapter ruler; C's columns became the paired translation and study rows.
+
+**What changed:**
+
+- [x] A wide-screen layout at 1024px and up, switched with `useMediaQuery` so each width gets one tree:
+  - A sticky top bar and chapter ruler (72 marks: read in grey, current in red, each a pointer shortcut; previous and next at its ends).
+  - The leaf across the full column, the verse centred at `clamp(30px, 2.8vw, 40px)`.
+  - Long-metre verses set as two half-verses at 85%.
+  - English | Hindi.
+  - Commentary | Word meanings, on the same two-column grid.
+- [x] Phones and tablets: the ruled leaf and a thin progress strip (it opens the verse grid). Tablets get a larger type step.
+- [x] The chapter list uses two columns of rows on laptops (chapters 1–9 and 10–18), as a stopgap until Phase 3 redesigns it.
+- [x] Hindi is set in Tiro Devanagari Sanskrit; `@fontsource/tiro-devanagari-hindi` was removed.
+- [x] Fixed a bug the screenshots showed: `tailwind-merge` dropped custom `text-*` classes it took for colours, which left the transliteration upright and in the sans face. The custom type classes were renamed (`verse-sanskrit`, `reading-text`, `transliteration-text`, `study-text`).
+
+**Results:**
+
+- **Inspector `--app`** at 1440, 1024, 768 and 390, on 2.47 and the long-metre 11.32: **0 FAIL**. One WARN, three faces, defended in §6.3. On `/chapters`: 0 FAIL, 0 WARN.
+- **Lint:** 0 FAIL.
+- **axe:** 0 violations, light and dark.
+- **Tests:** Vitest 41/41; Playwright 73 passed. The 3 skips are by design: swipe on desktop, the keyboard run on the phone, the laptop-only layout test on the phone.
+- **New tests:** on a laptop the verse, both translations and the word meanings share the first screen, and a ruler mark opens its verse; long-metre verses show 4 lines on a phone and 2 on a laptop.
+- **Lighthouse desktop:** reader Performance **99**, chapters **100**; Accessibility, Best Practices and SEO 100. Mobile is unchanged: reader 76, chapters 86.
+
+**Critique, scored after looking at the screenshots at every width:**
+
+| | Score | Why |
+| --- | --- | --- |
+| Design | 8 | One column grid closes edge to edge; the verse is the largest and first thing; red appears only on the marker, the current mark and the margins |
+| Usability | 8 | Previous and next stay in view on laptops; both translations need no click. The commentary still needs a click to load |
+| Creativity | 8 | The ruled leaf and the chapter ruler come from the manuscript itself, not from a template |
+| Content | 8 | The real text throughout. Source quirks such as "?" for commas in Sivananda's commentary remain |
+| **Overall** | **8.0** | |
+
+The weakest remaining parts are outside the reader: the home page and the chapter list are still the Phase 2 stopgaps, which Phase 3 redesigns.
 
 ### Phase 3: Chapter list, chapter page, home, about (L)
 
