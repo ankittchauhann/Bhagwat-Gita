@@ -1,4 +1,5 @@
 {
+  "installCommand": "rm -rf node_modules && bun install --frozen-lockfile",
   "rewrites": [{ "source": "/((?!data/).*)", "destination": "/index.html" }],
   "headers": [
     {

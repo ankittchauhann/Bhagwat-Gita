@@ -4,8 +4,9 @@ The app is a static site. `bun run build` writes the pages, scripts and all Gita
 
 ## Vercel (current host)
 
-Pushing to `main` deploys automatically. `vercel.json` does three things:
+Pushing to `main` deploys automatically. `vercel.json` does four things:
 
+- installs from scratch with `rm -rf node_modules && bun install --frozen-lockfile`. Vercel restores `node_modules` from the last deployment, and Bun can drop a nested package when it installs over an old tree ([oven-sh/bun#7241](https://github.com/oven-sh/bun/issues/7241)). Here that lost the copy of `estree-walker` 2 that `@rollup/pluginutils` needs, and the service-worker build failed with `No "exports" main defined in …/estree-walker/package.json`. A clean install from the lockfile is what CI does, and it takes a few seconds;
 - rewrites every path except `/data/*` to `/index.html`, so links such as `/chapter/2/verse/47` open the app;
 - serves `/data/*` with `Cache-Control: public, max-age=31536000, immutable`;
 - serves `/sw.js` and `/manifest.webmanifest` with `max-age=0, must-revalidate`, so browsers find a new version straight away.
