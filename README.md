@@ -24,6 +24,13 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 - **About and sources** (`/about`): where the text, every translation, every commentary, the pictures and the fonts come from, and their terms
 - **Bundled data**: every chapter ships with the app; nothing depends on a third-party API
 
+### 📴 **Offline and installable**
+
+- **Every chapter you open stays on the device**, so it reads in airplane mode; commentaries you open are kept too
+- **Downloads with real sizes**: a chapter's commentaries from its page or Reading settings, and all 18 chapters (1.8 MB) or every commentary (26 MB) from the chapter list; sizes are measured from the files at build time, and the space the site uses comes from the browser
+- **Offline pages that help**: the chapter list marks what isn't saved, and a chapter that isn't saved says so, links to the ones that are, and opens by itself when the connection returns
+- **Installable** on Android, iPhone and desktop (manifest, maskable icon, About explains how); a "New version is ready · Reload" message after each deploy
+
 ### 🎯 **Verse reader** (built phone first)
 
 - **One verse per screen**, at its own address, e.g. `/chapter/2/verse/47`
@@ -96,6 +103,7 @@ public/data/v2/
   chapter/{1..18}.json               # every verse: speaker, Sanskrit lines, transliteration, word meanings, 7 translations
   commentary/{chapter}/{verse}.json  # 16 commentators, loaded only when the reader opens commentary
   credits.json                       # counts, speakers, translators and commentators (home figures, About)
+  sizes.json                         # bytes of each chapter file and its commentaries (download sizes)
 public/sitemap.xml                   # 722 URLs: home, chapter list, About, 18 chapters, 701 verses
 public/images/                       # six Wikimedia Commons pictures (CC BY-SA 4.0), resized only
 ```
@@ -103,9 +111,9 @@ public/images/                       # six Wikimedia Commons pictures (CC BY-SA 
 - `bun run data` downloads the pinned source, rebuilds these files and validates them (18 chapters, 701 verses, 7 translations per verse, every commentary file present, every chapter opening with a speaker line).
 - Formatting only, never wording: each verse is split into its half-verse lines, the closing `।।2.47।।` becomes the red marker, the "… उवाच" speaker line is lifted out (and संजय spelled सञ्जय throughout), and the reference that opens the Hindi translations is dropped. Every verse records who speaks it: Krishna 574, Arjuna 86, Sanjaya 40, Dhritarashtra 1.
 - `bun run data:check` validates the committed files offline; CI runs it on every push.
-- The files are served with a one-year immutable cache, so **bump `DATA_VERSION` in `src/lib/gitaData.ts` (and the folder name) whenever the data changes.**
+- The files are served with a one-year immutable cache, so **bump `DATA_VERSION` in `src/lib/dataPaths.ts` (and the folder name) whenever the data changes.**
 
-The app reads them through `src/lib/gitaData.ts`, which caches each file in memory: once a chapter has loaded, moving between its verses makes no network request.
+The app reads them through `src/lib/gitaData.ts`, which caches each file in memory (once a chapter has loaded, moving between its verses makes no network request) and keeps every chapter and commentary file in Cache Storage for offline reading. The service worker (`vite-plugin-pwa`, configured in `vite.config.ts`) precaches the app, fonts and the small index files, and serves saved chapters from Cache Storage.
 
 ## 🚀 Quick Start
 
@@ -160,6 +168,7 @@ No API key or environment variables are needed.
 │   │   ├── ui/                     # Button, sheet, disclosure, segmented control, switch, radio list
 │   │   ├── reader/                 # Verse reader: page, verse leaf, study sections, settings and verse-grid sheets
 │   │   ├── home/                   # Home page: title card, crossfade, today's verse, scroll-in motion
+│   │   ├── offline/                # Chapter downloads, the chapter list's offline section, notices, retry when back online
 │   │   ├── AboutPage.tsx           # Sources and credits
 │   │   ├── AppHeader.tsx           # Header of the home, chapter, list, About and 404 pages
 │   │   ├── ChapterOverview.tsx     # Chapter page
@@ -170,6 +179,9 @@ No API key or environment variables are needed.
 │   │   └── ThemeToggle.tsx         # Dark theme button on the home page
 │   ├── lib/
 │   │   ├── gitaData.ts             # Data types, cached loaders, URL parsing
+│   │   ├── dataPaths.ts            # Data version, file paths and cache names (shared with the service worker)
+│   │   ├── offline.ts              # What is saved, downloads, sizes, storage
+│   │   ├── install.ts              # The browser's install prompt
 │   │   ├── chapterGroups.ts        # Karma 1–6, Bhakti 7–12, Jñāna 13–18
 │   │   ├── credits.ts              # Pictures, fonts and links credited on About
 │   │   ├── progress.ts             # Verses read per chapter and where "Continue" leads
@@ -178,6 +190,7 @@ No API key or environment variables are needed.
 │   │   └── theme.ts                # System, Light or Dark (mirrors the inline script in index.html)
 │   ├── store/
 │   │   ├── preferencesStore.ts     # Translators, commentator, text sizes, visible and open sections
+│   │   ├── offlineStore.ts         # Saved chapters, the running download, storage used
 │   │   └── readingHistoryStore.ts  # Last position, history, bookmarks, read verses
 │   ├── routes/
 │   │   ├── __root.tsx
@@ -295,7 +308,7 @@ The phases, their acceptance criteria and their status are in [REDESIGN_ACTION_P
 - [x] Phase 1: static data, verse URLs, bug fixes
 - [x] Phase 2: design system and the mobile reader
 - [x] Phase 3: chapter list, chapter page, home, About
-- [ ] Phase 4: recorded recitation and offline reading
+- [x] Phase 4: offline reading, downloads, install and updates (recorded recitation waits on D-2)
 - [ ] Phase 5: search, saved verses, progress, sharing, today's verse
 - [ ] Phase 6: prerendering, SEO, launch
 

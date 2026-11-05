@@ -1,5 +1,6 @@
 import { AppHeader } from "@/components/AppHeader";
 import { VerseGrid } from "@/components/VerseGrid";
+import { ChapterDownload } from "@/components/offline/ChapterDownload";
 import { SPEAKER_NAMES } from "@/components/reader/verseNavigation";
 import { buttonClass } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/choice";
@@ -58,7 +59,7 @@ export function ChapterOverview() {
 		<div className="min-h-dvh bg-ground">
 			<AppHeader backTo="/chapters" />
 			<main className="mx-auto max-w-[720px] px-4 pt-4 pb-16 lg:max-w-[1208px] lg:px-6 lg:pt-6">
-				<div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-20">
+				<div className="grid items-start gap-10 lg:grid-cols-2 lg:grid-rows-[auto_1fr] lg:gap-x-20 lg:gap-y-8">
 					<div>
 						<p className="text-[15px] text-muted">
 							Chapter {chapter.number} of {chapters.length} · {group.name},{" "}
@@ -140,7 +141,7 @@ export function ChapterOverview() {
 
 					<section
 						aria-labelledby="summary-title"
-						className="rounded-[8px] bg-leaf px-5 py-6 lg:px-8 lg:py-7"
+						className="rounded-[8px] bg-leaf px-5 py-6 lg:row-span-2 lg:px-8 lg:py-7"
 					>
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<h2 id="summary-title" className="text-[18px] font-bold">
@@ -184,6 +185,8 @@ export function ChapterOverview() {
 							</button>
 						)}
 					</section>
+
+					<ChapterDownload chapter={chapter} className="lg:col-start-1" />
 				</div>
 
 				<section

@@ -1,7 +1,12 @@
 import { AppHeader } from "@/components/AppHeader";
+import { OfflineLibrary } from "@/components/offline/OfflineLibrary";
+import { OfflineNotice } from "@/components/offline/OfflineNotice";
 import { buttonClass } from "@/components/ui/button";
 import { CHAPTER_GROUPS, groupRange } from "@/lib/chapterGroups";
 import { readCount } from "@/lib/progress";
+import { useOnline } from "@/lib/useOnline";
+import { cn } from "@/lib/utils";
+import { useOfflineLibrary } from "@/store/offlineStore";
 import { useReadingHistory } from "@/store/readingHistoryStore";
 import { Link, getRouteApi } from "@tanstack/react-router";
 import { Search } from "lucide-react";
@@ -10,7 +15,9 @@ import { useState } from "react";
 const route = getRouteApi("/chapters");
 
 export function ChaptersPage() {
-	const { chapters } = route.useLoaderData();
+	const { chapters, credits } = route.useLoaderData();
+	const online = useOnline();
+	const library = useOfflineLibrary();
 	const versesRead = useReadingHistory((state) => state.stats.versesRead);
 	const lastPosition = useReadingHistory((state) => state.lastPosition);
 	const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +44,8 @@ export function ChaptersPage() {
 				matches(chapter),
 		),
 	})).filter(({ chapters: list }) => list.length > 0);
+	const unavailable = (chapterNumber: number) =>
+		!online && library.loaded && !library.text.has(chapterNumber);
 	const lastChapter = lastPosition
 		? chapters.find((chapter) => chapter.number === lastPosition.chapterId)
 		: undefined;
@@ -70,6 +79,10 @@ export function ChaptersPage() {
 						/>
 					</div>
 				</div>
+
+				{!online && library.supported && (
+					<OfflineNotice saved={library.text.size} />
+				)}
 
 				{lastPosition && lastChapter && !query && (
 					<Link
@@ -125,12 +138,16 @@ export function ChaptersPage() {
 											chapter.number,
 											chapter.versesCount,
 										);
+										const notSaved = unavailable(chapter.number);
 										return (
 											<li key={chapter.number} className="border-b">
 												<Link
 													to="/chapter/$chapterId"
 													params={{ chapterId: String(chapter.number) }}
-													className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-x-3 py-3.5 hover:bg-surface/60"
+													className={cn(
+														"grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-x-3 py-3.5 hover:bg-surface/60",
+														notSaved && "text-muted",
+													)}
 												>
 													<span className="text-right text-[18px] font-bold tabular-nums">
 														{chapter.number}
@@ -163,9 +180,12 @@ export function ChaptersPage() {
 													<span className="text-[14px] text-muted tabular-nums">
 														<span className="sr-only">
 															{read} of {chapter.versesCount} verses read
+															{notSaved && ", not saved on this device"}
 														</span>
 														<span aria-hidden="true">
-															{read} / {chapter.versesCount}
+															{notSaved
+																? "Not saved"
+																: `${read} / ${chapter.versesCount}`}
 														</span>
 													</span>
 												</Link>
@@ -177,6 +197,8 @@ export function ChaptersPage() {
 						))}
 					</div>
 				)}
+
+				<OfflineLibrary chapters={chapters} credits={credits} />
 			</main>
 		</div>
 	);

@@ -385,10 +385,33 @@ dialog.sheet[open]::backdrop {
 	opacity: 1;
 }
 
+.app-notices {
+	bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+body:has([data-bottom-bar]) .app-notices {
+	bottom: calc(var(--bottom-bar) + 0.75rem);
+}
+
+.app-notices > * {
+	animation: notice-enter 200ms ease-out;
+}
+
+@keyframes notice-enter {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+
 @media print {
 	.reveal-ready [data-reveal] {
 		opacity: 1;
 		transform: none;
+	}
+
+	.app-notices {
+		display: none;
 	}
 }
 

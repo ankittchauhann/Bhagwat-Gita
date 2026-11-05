@@ -1,11 +1,14 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { type ChapterFile, DATA_VERSION } from "../src/lib/gitaData";
 import {
 	type SourceAuthoredText,
 	type SourceData,
 	buildData,
+	commentaryKey,
 	creditsFor,
+	downloadSizesFor,
+	jsonFile,
 	sitemapXml,
 	speakerOf,
 	splitSpeaker,
@@ -312,6 +315,41 @@ describe("creditsFor", () => {
 			sanjaya: 40,
 			dhritarashtra: 1,
 		});
+	});
+});
+
+describe("downloadSizesFor", () => {
+	it("measures each chapter file and its commentary files as they are written", () => {
+		const { data } = buildData(fixture());
+		const [file] = data.chapterFiles;
+		const commentary = data.commentary.get(commentaryKey(1, 1));
+		expect(downloadSizesFor(data)).toEqual({
+			chapters: [
+				{
+					number: 1,
+					text: new TextEncoder().encode(jsonFile(file)).byteLength,
+					commentary: new TextEncoder().encode(jsonFile(commentary)).byteLength,
+				},
+			],
+		});
+	});
+
+	it("matches the bytes of the committed files", () => {
+		const base = `public/data/${DATA_VERSION}`;
+		const sizes = JSON.parse(readFileSync(`${base}/sizes.json`, "utf8"));
+		const onDisk = Array.from({ length: 18 }, (_, index) => {
+			const number = index + 1;
+			const folder = `${base}/commentary/${number}`;
+			return {
+				number,
+				text: statSync(`${base}/chapter/${number}.json`).size,
+				commentary: readdirSync(folder).reduce(
+					(sum, name) => sum + statSync(`${folder}/${name}`).size,
+					0,
+				),
+			};
+		});
+		expect(sizes.chapters).toEqual(onDisk);
 	});
 });
 

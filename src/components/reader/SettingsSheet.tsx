@@ -1,6 +1,7 @@
+import { ChapterDownload } from "@/components/offline/ChapterDownload";
 import { RadioList, SegmentedControl, Switch } from "@/components/ui/choice";
 import { Sheet } from "@/components/ui/sheet";
-import type { Author } from "@/lib/gitaData";
+import type { Author, ChapterInfo } from "@/lib/gitaData";
 import {
 	type ThemeSetting,
 	applyThemeSetting,
@@ -28,11 +29,13 @@ export const HINDI_SECTION_ID = "settings-hindi";
 export function SettingsSheet({
 	open,
 	onClose,
+	chapter,
 	translators,
 	focusSection,
 }: {
 	open: boolean;
 	onClose: () => void;
+	chapter: ChapterInfo;
 	translators: Author[];
 	focusSection: string | null;
 }) {
@@ -124,6 +127,7 @@ export function SettingsSheet({
 						}
 					/>
 				</div>
+				<ChapterDownload chapter={chapter} inSheet />
 			</div>
 		</Sheet>
 	);

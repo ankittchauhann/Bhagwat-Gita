@@ -547,7 +547,7 @@ Install the four Fontsource packages in §6.3. Import only the subsets needed (D
 - **Plugin.** `vite-plugin-pwa` **2.0.0**, whose peer range includes Vite ^6 (verified), with the `generateSW` strategy.
 - **Precached:** the app shell, `chapters.json`, fonts, and the credits file.
 - **Cached at runtime:**
-  - `chapter/*.json` and `commentary/**`: CacheFirst with expiry.
+  - `chapter/*.json` and `commentary/**`: **as built,** the page saves them when they load or are downloaded, and the worker serves them cache-first. There is no expiry, because the data is immutable and versioned (see Phase 4).
   - Audio: its own cache with range requests, which Safari needs for seeking. Cached only after play or an explicit "Download".
 - **Updates.** `useRegisterSW` from `virtual:pwa-register/react` shows a "New version available · Reload" message in a live region.
 - **Manifest:**
@@ -861,15 +861,62 @@ App screens, checked against app-screens §2.7:
 
 The audio work is blocked on D-2; offline text is not.
 
-- [ ] Host the audio; build the player with Media Session, auto-advance, speed and repeat.
-- [ ] Add `vite-plugin-pwa`, the manifest, downloads with real sizes, and the update prompt.
+**Status: offline done** on branch `feature/offline-reading`; **audio still blocked on D-2.** The screens were drawn first, on the fourth row of the Claude Design canvas ([Gita Reader Layouts](https://claude.ai/artifact/9N4h8aeA9XwmffeQAySCSm)), then built.
+
+- [ ] Host the audio; build the player with Media Session, auto-advance, speed and repeat. **Blocked on D-2;** the control stays hidden.
+- [x] Add `vite-plugin-pwa`, the manifest, downloads with real sizes, and the update prompt.
+  - **Service worker:** `vite-plugin-pwa` 2.0.0 (`generateSW`, `registerType: "prompt"`). It precaches 35 files (942 KiB before compression): the app, the Devanagari and Latin font subsets, and `chapters.json`, `credits.json` and `sizes.json`. Any address opens offline from the app shell. Pictures are cached as they are seen.
+  - **Saving is done by the page, not the worker.** `gitaData.ts` keeps every chapter and commentary file it loads in Cache Storage (`gita-text-v2`, `gita-commentary-v2`), so "every chapter you open stays on this device" holds even before the worker takes control on a first visit. The worker only reads those caches back. Caches from an older `DATA_VERSION` are deleted on start.
+  - **Downloads:**
+    - A chapter's commentaries: from the chapter page and from Reading settings.
+    - All 18 chapters (1.8 MB) or every commentary (26 MB): from a new "Offline reading" section on the chapter list.
+    - Each download shows its progress and can be stopped. Six requests run at once. A failed or stopped download keeps what it saved and resumes from there.
+    - On the first download the app asks the browser to keep the storage (`navigator.storage.persist()`), and the chapter list says whether it will.
+    - "Remove downloads" asks first.
+  - **Real sizes:** `sizes.json` records the bytes of each chapter file and its commentaries. It is generated and checked by `bun run data:check`, and a unit test compares it with the files on disk. The sizes shown are the space each part takes on the device; the download itself is smaller, because it is compressed. The space the site uses comes from `navigator.storage.estimate()`.
+  - **When offline:**
+    - The chapter list says how many chapters are saved and marks the others "Not saved".
+    - A chapter that isn't saved shows "You're offline", with links to the saved chapters, and opens by itself when the connection returns. It retries at 0, 1, 3 and 8 seconds from the root layout: the online event can fire before requests get through, which a test caught.
+    - A commentary that isn't saved says where to save it.
+  - **Notices** (polite live region, above the reader's bottom bar): "A new version of the reader is ready · Later / Reload", "Ready to read offline", and "You're offline" / "Back online". Installed apps check for a new version hourly.
+  - **Manifest:**
+    - Name "Bhagavad Gita", short name "Gita"; the description carries श्रीमद्भगवद्गीता.
+    - Theme and background `#eeecea`; `id`, `start_url` and `scope` are `/`.
+    - Icons at 192 and 512, plus a new maskable 512. It is the owner's Om icon, scaled to 85% on its own cream so it sits inside the safe circle.
+    - The 16–64px icons are no longer listed; they stay as favicons. `public/manifest.json` is replaced by the generated `manifest.webmanifest`.
+  - **About** has an "Install and read offline" section: an Install button where the browser offers one, and steps for iPhone, Android and computers.
+  - **Vercel** serves `sw.js` and the manifest with `max-age=0, must-revalidate`.
 
 **Done when:**
 
-- In airplane mode, chapters opened before still read.
-- A downloaded chapter's audio plays offline in iOS Safari and Android Chrome.
-- Lock-screen controls work on both.
-- The app can be installed from Chrome on Android and added to the home screen on iOS.
+- In airplane mode, chapters opened before still read. **Met:** e2e test, on phone and desktop.
+- A downloaded chapter's audio plays offline in iOS Safari and Android Chrome. **Blocked on D-2.**
+- Lock-screen controls work on both. **Blocked on D-2.**
+- The app can be installed from Chrome on Android and added to the home screen on iOS. **Met in Chrome:** `Page.getInstallabilityErrors` returns none in the e2e test. Check iOS by hand once deployed.
+
+**Results:**
+
+- **Tests:**
+  - Vitest: 70, up from 50. New tests cover what is saved, downloads (skipping saved files, limiting concurrent requests, stopping on the first failure, cancelling), sizes against the files on disk, removing old caches, and the update and connection notices.
+  - Two bugs found in review have tests that fail without their fix: a failed download disabled every other download button, and after Stop a new download could be ignored or overwritten by the stopped one.
+  - Playwright: a new `e2e/offline.spec.ts`, on phone and desktop:
+    - installable, with the manifest icons served;
+    - an opened chapter reads offline, with the Sanskrit font;
+    - a chapter that isn't saved, its saved links, and opening once back online;
+    - downloading a chapter's commentaries and reading them offline;
+    - downloading every chapter, the offline marks on the chapter list, and removing downloads;
+    - axe on the offline page and the offline chapter list.
+  - The other specs block the service worker, so `page.route` mocks still apply.
+  - Full suite: 123 passed, 3 skipped by design. The offline spec passed 30 of 30 when repeated three times.
+- **Inspector** at 1440, 1024, 768 and 390:
+  - `/chapters`: 0 FAIL, 0 WARN.
+  - `/chapter/2` and `/chapter/18`: 0 FAIL, plus the typeface WARN.
+  - `/about`: 0 FAIL, 1 WARN (3 of 7 sections start on the first laptop screen). It is a reference page read top to bottom, and the install section belongs near the privacy note.
+- **Lighthouse** (production build, local):
+  - Accessibility, Best Practices and SEO are 100 on home, chapter page and chapter list.
+  - Desktop Performance: 98, 99 and 99.
+  - Mobile Performance: chapter page and list 81. Home is 68–69 over three runs, against 71 in Phase 3, with LCP unchanged at 5.3 s. The cost is about 3.4 kB gzip of new script; the worker installs after `load`, and the Workbox runtime is loaded lazily. Phase 6 prerendering remains the fix for mobile.
+- **Main bundle:** 103.0 kB gzip, up from 99.4 kB.
 
 ### Phase 5: Search, saved, progress, share, today's verse (M)
 

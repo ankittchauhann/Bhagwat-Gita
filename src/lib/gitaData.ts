@@ -1,6 +1,12 @@
-export const DATA_VERSION = "v2";
+import {
+	KEPT_EVENT,
+	cacheNameFor,
+	chapterPath,
+	commentaryPath,
+	dataUrl,
+} from "./dataPaths";
 
-const DATA_BASE_URL = `/data/${DATA_VERSION}`;
+export { DATA_VERSION } from "./dataPaths";
 
 export type Language = "english" | "hindi" | "sanskrit";
 
@@ -69,6 +75,11 @@ export interface ChapterFile {
 
 export type VerseCommentary = Record<string, string>;
 
+// Bytes each part takes once saved on the device.
+export interface DownloadSizes {
+	chapters: { number: number; text: number; commentary: number }[];
+}
+
 export class DataLoadError extends Error {
 	readonly status: number | null;
 
@@ -85,13 +96,30 @@ export class DataLoadError extends Error {
 
 const cache = new Map<string, Promise<unknown>>();
 
+// Every chapter and commentary that loads is kept for offline reading, even before the service worker takes over.
+async function keep(path: string, response: Response) {
+	const cacheName = cacheNameFor(path);
+	if (!cacheName || typeof caches === "undefined") {
+		return;
+	}
+	try {
+		const store = await caches.open(cacheName);
+		if (!(await store.match(dataUrl(path)))) {
+			await store.put(dataUrl(path), response);
+			window.dispatchEvent(new CustomEvent(KEPT_EVENT, { detail: path }));
+		}
+	} catch {
+		// Storage can be full or blocked; reading still works online.
+	}
+}
+
 function loadJson<T>(path: string): Promise<T> {
 	const cached = cache.get(path);
 	if (cached) {
 		return cached as Promise<T>;
 	}
 
-	const request = fetch(`${DATA_BASE_URL}${path}`)
+	const request = fetch(dataUrl(path))
 		.catch(() => {
 			throw new DataLoadError(path, null);
 		})
@@ -99,7 +127,11 @@ function loadJson<T>(path: string): Promise<T> {
 			if (!response.ok) {
 				throw new DataLoadError(path, response.status);
 			}
-			return (await response.json()) as T;
+			const [data] = await Promise.all([
+				response.clone().json() as Promise<T>,
+				keep(path, response),
+			]);
+			return data;
 		})
 		.catch((error: unknown) => {
 			cache.delete(path);
@@ -118,14 +150,16 @@ export function loadCredits() {
 	return loadJson<Credits>("/credits.json");
 }
 
+export function loadDownloadSizes() {
+	return loadJson<DownloadSizes>("/sizes.json");
+}
+
 export function loadChapter(chapterNumber: number) {
-	return loadJson<ChapterFile>(`/chapter/${chapterNumber}.json`);
+	return loadJson<ChapterFile>(chapterPath(chapterNumber));
 }
 
 export function loadCommentary(chapterNumber: number, verseNumber: number) {
-	return loadJson<VerseCommentary>(
-		`/commentary/${chapterNumber}/${verseNumber}.json`,
-	);
+	return loadJson<VerseCommentary>(commentaryPath(chapterNumber, verseNumber));
 }
 
 export function clearDataCache() {

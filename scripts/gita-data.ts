@@ -4,6 +4,7 @@ import {
 	type ChapterInfo,
 	type ChaptersIndex,
 	type Credits,
+	type DownloadSizes,
 	type Language,
 	SPEAKERS,
 	type Speaker,
@@ -496,6 +497,35 @@ export function creditsFor(data: BuiltData): Credits {
 		speakers,
 		translators,
 		commentators,
+	};
+}
+
+export function jsonFile(value: unknown) {
+	return `${JSON.stringify(value)}\n`;
+}
+
+const encoder = new TextEncoder();
+
+function byteLength(value: unknown) {
+	return encoder.encode(jsonFile(value)).byteLength;
+}
+
+export function downloadSizesFor(data: BuiltData): DownloadSizes {
+	return {
+		chapters: data.chapterFiles.map((file) => ({
+			number: file.chapter.number,
+			text: byteLength(file),
+			commentary: file.verses.reduce(
+				(sum, verse) =>
+					sum +
+					byteLength(
+						data.commentary.get(
+							commentaryKey(file.chapter.number, verse.number),
+						),
+					),
+				0,
+			),
+		})),
 	};
 }
 

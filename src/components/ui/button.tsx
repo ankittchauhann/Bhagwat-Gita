@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ComponentProps, ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "quiet";
 
@@ -25,7 +25,7 @@ export function Button({
 	className,
 	type = "button",
 	...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
+}: ComponentProps<"button"> & { variant?: Variant }) {
 	return (
 		<button
 			type={type}

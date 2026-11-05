@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Disclosure } from "@/components/ui/disclosure";
 import {
 	type Author,
+	DataLoadError,
 	type Language,
 	type VerseCommentary,
 	loadCommentary,
@@ -67,9 +68,9 @@ export function CommentarySection({
 					setState({
 						status: "error",
 						message:
-							error instanceof Error
-								? error.message
-								: "Couldn't load commentary.",
+							error instanceof DataLoadError && error.status === null
+								? "This commentary isn't saved on this device. Connect to read it, or save the chapter's commentaries in Reading settings."
+								: "Couldn't load this commentary.",
 					});
 				}
 			},

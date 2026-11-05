@@ -368,6 +368,7 @@ export function ReaderPage() {
 
 			{!wide && (
 				<nav
+					data-bottom-bar
 					aria-label="Previous and next verse"
 					className="fixed inset-x-0 bottom-0 z-20 border-t bg-ground pb-[env(safe-area-inset-bottom)]"
 				>
@@ -391,6 +392,7 @@ export function ReaderPage() {
 			<SettingsSheet
 				open={sheet?.kind === "settings"}
 				onClose={() => setSheet(null)}
+				chapter={chapter}
 				translators={translators}
 				focusSection={sheet?.kind === "settings" ? sheet.section : null}
 			/>

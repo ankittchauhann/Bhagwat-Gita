@@ -12,6 +12,8 @@ export default defineConfig({
 	use: {
 		baseURL: `http://localhost:${PORT}`,
 		trace: "retain-on-failure",
+		// A service worker would answer requests that tests mock with page.route; e2e/offline.spec.ts turns it on.
+		serviceWorkers: "block",
 	},
 	projects: [
 		{ name: "phone", use: { ...devices["Pixel 7"] } },
