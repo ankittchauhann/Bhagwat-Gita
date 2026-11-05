@@ -1,3 +1,4 @@
+import { addDays, localDay, verseKey } from "@/lib/progress";
 import { create } from "zustand";
 
 export interface ReadingPosition {
@@ -12,21 +13,24 @@ export interface HistoryEntry extends ReadingPosition {
 	versePreview?: string;
 }
 
+// Carries what the Saved page shows, so it works without loading the chapter.
 export interface Bookmark {
 	id: string;
 	chapterId: number;
 	verseNumber: number;
 	chapterName: string;
-	verseText: string;
+	sanskrit: string;
+	translation?: string;
+	translatorName?: string;
 	timestamp: number;
 	note?: string;
 }
 
 export interface ReadingStats {
 	versesRead: Set<string>; // Format: "chapterId-verseNumber"
-	totalTimeSpent: number; // in seconds
-	lastReadDate: string; // ISO date string
-	readingStreak: number; // consecutive days
+	// Local calendar day → different verses opened that day.
+	readDays: Record<string, number>;
+	today: { day: string; verses: string[] };
 }
 
 interface ReadingHistoryState {
@@ -40,6 +44,7 @@ interface ReadingHistoryState {
 	addToHistory: (entry: HistoryEntry) => void;
 	addBookmark: (bookmark: Bookmark) => void;
 	removeBookmark: (bookmarkId: string) => void;
+	setBookmarkNote: (bookmarkId: string, note: string) => void;
 	markVerseAsRead: (chapterId: number, verseNumber: number) => void;
 	isVerseRead: (chapterId: number, verseNumber: number) => boolean;
 	clearHistory: () => void;
@@ -80,15 +85,30 @@ const serializeStats = (stats: ReadingStats) => ({
 });
 
 interface SerializedStats {
-	versesRead: string[];
-	totalTimeSpent: number;
-	lastReadDate: string;
-	readingStreak: number;
+	versesRead?: string[];
+	readDays?: Record<string, number>;
+	today?: { day: string; verses: string[] };
+	// Before November 2026 only a streak counter was kept.
+	lastReadDate?: string;
+	readingStreak?: number;
+}
+
+const KEPT_DAYS = 400;
+
+function migratedDays({ lastReadDate, readingStreak }: SerializedStats) {
+	const days: Record<string, number> = {};
+	if (lastReadDate && readingStreak) {
+		for (let index = 0; index < Math.min(readingStreak, KEPT_DAYS); index++) {
+			days[addDays(lastReadDate, -index)] = 0;
+		}
+	}
+	return days;
 }
 
 const deserializeStats = (data: SerializedStats): ReadingStats => ({
-	...data,
-	versesRead: new Set(data.versesRead || []),
+	versesRead: new Set(data.versesRead ?? []),
+	readDays: data.readDays ?? migratedDays(data),
+	today: data.today ?? { day: "", verses: [] },
 });
 
 // Read synchronously at creation so a direct visit to a verse never overwrites saved history with an empty state.
@@ -100,12 +120,7 @@ const readStoredState = () => ({
 	history: loadFromStorage<HistoryEntry[]>(STORAGE_KEYS.HISTORY, []),
 	bookmarks: loadFromStorage<Bookmark[]>(STORAGE_KEYS.BOOKMARKS, []),
 	stats: deserializeStats(
-		loadFromStorage<SerializedStats>(STORAGE_KEYS.STATS, {
-			versesRead: [],
-			totalTimeSpent: 0,
-			lastReadDate: new Date().toISOString().split("T")[0],
-			readingStreak: 0,
-		}),
+		loadFromStorage<SerializedStats>(STORAGE_KEYS.STATS, {}),
 	),
 });
 
@@ -167,43 +182,48 @@ export const useReadingHistory = create<ReadingHistoryState>((set, get) => ({
 		saveToStorage(STORAGE_KEYS.BOOKMARKS, newBookmarks);
 	},
 
+	setBookmarkNote: (bookmarkId, note) => {
+		const text = note.trim();
+		const newBookmarks = get().bookmarks.map((bookmark) =>
+			bookmark.id === bookmarkId
+				? { ...bookmark, note: text || undefined }
+				: bookmark,
+		);
+		set({ bookmarks: newBookmarks });
+		saveToStorage(STORAGE_KEYS.BOOKMARKS, newBookmarks);
+	},
+
 	markVerseAsRead: (chapterId, verseNumber) => {
 		const { stats } = get();
-		const verseKey = `${chapterId}-${verseNumber}`;
-
-		// Add verse to read set
-		const newVersesRead = new Set(stats.versesRead);
-		newVersesRead.add(verseKey);
-
-		// Update last read date and streak
-		const today = new Date().toISOString().split("T")[0];
-		const yesterday = new Date(Date.now() - 86400000)
-			.toISOString()
-			.split("T")[0];
-
-		let newStreak = stats.readingStreak;
-		if (stats.lastReadDate === yesterday) {
-			newStreak += 1;
-		} else if (stats.lastReadDate !== today) {
-			newStreak = 1;
+		const key = verseKey(chapterId, verseNumber);
+		const day = localDay();
+		const todayVerses = stats.today.day === day ? stats.today.verses : [];
+		const firstToday = !todayVerses.includes(key);
+		if (stats.versesRead.has(key) && !firstToday) {
+			return;
 		}
 
+		const readDays: Record<string, number> = {};
+		const oldest = addDays(day, -KEPT_DAYS);
+		for (const [entry, count] of Object.entries(stats.readDays)) {
+			if (entry > oldest) {
+				readDays[entry] = count;
+			}
+		}
+		readDays[day] = (readDays[day] ?? 0) + (firstToday ? 1 : 0);
+
 		const newStats: ReadingStats = {
-			...stats,
-			versesRead: newVersesRead,
-			lastReadDate: today,
-			readingStreak: newStreak,
+			versesRead: new Set(stats.versesRead).add(key),
+			readDays,
+			today: { day, verses: firstToday ? [...todayVerses, key] : todayVerses },
 		};
 
 		set({ stats: newStats });
 		saveToStorage(STORAGE_KEYS.STATS, serializeStats(newStats));
 	},
 
-	isVerseRead: (chapterId, verseNumber) => {
-		const { stats } = get();
-		const verseKey = `${chapterId}-${verseNumber}`;
-		return stats.versesRead.has(verseKey);
-	},
+	isVerseRead: (chapterId, verseNumber) =>
+		get().stats.versesRead.has(verseKey(chapterId, verseNumber)),
 
 	clearHistory: () => {
 		set({ history: [] });

@@ -37,6 +37,8 @@ After deployment, these should all load:
 - `https://bhagwat-gita-iota.vercel.app/data/v2/chapter/2.json`
 - `https://bhagwat-gita-iota.vercel.app/data/v2/credits.json`
 - `https://bhagwat-gita-iota.vercel.app/data/v2/sizes.json`
+- `https://bhagwat-gita-iota.vercel.app/data/v2/search/latin.json`
+- `https://bhagwat-gita-iota.vercel.app/search?q=2.47` (shows "Go to verse 2.47") and `https://bhagwat-gita-iota.vercel.app/saved`
 - `https://bhagwat-gita-iota.vercel.app/manifest.webmanifest` and `https://bhagwat-gita-iota.vercel.app/sw.js`
 - `https://bhagwat-gita-iota.vercel.app/images/gita-4-7-devanagari-900.jpg`
 - `https://bhagwat-gita-iota.vercel.app/sitemap.xml`

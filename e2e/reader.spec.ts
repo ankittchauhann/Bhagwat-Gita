@@ -322,7 +322,7 @@ test("a keyboard alone can reach every control, use the settings sheet and turn 
 	await expect(verseHeading(page, 2, 47)).toBeVisible();
 
 	const names: string[] = [];
-	for (let step = 0; step < 9; step++) {
+	for (let step = 0; step < 12; step++) {
 		await page.keyboard.press("Tab");
 		names.push(
 			await page.evaluate(() => {
@@ -334,9 +334,12 @@ test("a keyboard alone can reach every control, use the settings sheet and turn 
 	expect(names).toEqual([
 		"Skip to verse",
 		"Chapter 2 overview",
+		"Search",
 		"Reading settings",
 		"Previous verse, 2.46",
 		"Next verse, 2.48",
+		"Save",
+		"Copy",
 		"47 of 72, choose a verse",
 		"Change English translation",
 		"Change Hindi translation",
@@ -539,4 +542,22 @@ test("a first visit starts reading at 1.1", async ({ page }) => {
 	await expect(
 		page.getByText("Dhritarashtra said", { exact: true }).first(),
 	).toBeVisible();
+});
+
+test("chapters and verses open even when the browser's storage stalls", async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		const never = () => new Promise(() => {});
+		Object.defineProperty(window, "caches", {
+			configurable: true,
+			value: { open: never, keys: never, match: never, delete: never },
+		});
+	});
+	await page.goto("/chapter/3");
+	await expect(
+		page.getByRole("heading", { level: 1, name: "Karma Yoga" }),
+	).toBeVisible();
+	await page.goto("/chapter/3/verse/5");
+	await expect(verseHeading(page, 3, 5)).toBeVisible();
 });

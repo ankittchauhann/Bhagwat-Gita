@@ -9,12 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChapterChapterIdIndexRouteImport } from './routes/chapter.$chapterId.index'
 import { Route as ChapterChapterIdVerseVerseNumberRouteImport } from './routes/chapter.$chapterId.verse.$verseNumber'
 
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChaptersRoute = ChaptersRouteImport.update({
   id: '/chapters',
   path: '/chapters',
@@ -46,6 +58,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/chapters': typeof ChaptersRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/chapter/$chapterId': typeof ChapterChapterIdIndexRoute
   '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
@@ -53,6 +67,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/chapters': typeof ChaptersRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/chapter/$chapterId': typeof ChapterChapterIdIndexRoute
   '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
@@ -61,6 +77,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/chapters': typeof ChaptersRoute
+  '/saved': typeof SavedRoute
+  '/search': typeof SearchRoute
   '/chapter/$chapterId/': typeof ChapterChapterIdIndexRoute
   '/chapter/$chapterId/verse/$verseNumber': typeof ChapterChapterIdVerseVerseNumberRoute
 }
@@ -70,6 +88,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/chapters'
+    | '/saved'
+    | '/search'
     | '/chapter/$chapterId'
     | '/chapter/$chapterId/verse/$verseNumber'
   fileRoutesByTo: FileRoutesByTo
@@ -77,6 +97,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/chapters'
+    | '/saved'
+    | '/search'
     | '/chapter/$chapterId'
     | '/chapter/$chapterId/verse/$verseNumber'
   id:
@@ -84,6 +106,8 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/chapters'
+    | '/saved'
+    | '/search'
     | '/chapter/$chapterId/'
     | '/chapter/$chapterId/verse/$verseNumber'
   fileRoutesById: FileRoutesById
@@ -92,12 +116,28 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ChaptersRoute: typeof ChaptersRoute
+  SavedRoute: typeof SavedRoute
+  SearchRoute: typeof SearchRoute
   ChapterChapterIdIndexRoute: typeof ChapterChapterIdIndexRoute
   ChapterChapterIdVerseVerseNumberRoute: typeof ChapterChapterIdVerseVerseNumberRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chapters': {
       id: '/chapters'
       path: '/chapters'
@@ -140,6 +180,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ChaptersRoute: ChaptersRoute,
+  SavedRoute: SavedRoute,
+  SearchRoute: SearchRoute,
   ChapterChapterIdIndexRoute: ChapterChapterIdIndexRoute,
   ChapterChapterIdVerseVerseNumberRoute: ChapterChapterIdVerseVerseNumberRoute,
 }

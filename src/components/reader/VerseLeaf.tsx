@@ -1,6 +1,7 @@
 import type { Author, Verse } from "@/lib/gitaData";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/store/preferencesStore";
+import type { ReactNode } from "react";
 import { devanagariNumber, halfVerses } from "./verseNavigation";
 
 const DEVANAGARI = /[ऀ-ॿ]/;
@@ -30,12 +31,14 @@ export function VerseLeaf({
 	wide,
 	translator,
 	onChangeTranslator,
+	actions,
 }: {
 	chapterNumber: number;
 	verse: Verse;
 	wide: boolean;
 	translator: Author | undefined;
 	onChangeTranslator: () => void;
+	actions?: ReactNode;
 }) {
 	const showTransliteration = usePreferences(
 		(state) => state.showTransliteration,
@@ -115,6 +118,9 @@ export function VerseLeaf({
 						/>
 					</p>
 				</div>
+			)}
+			{actions && (
+				<div className="-mx-4 mt-2 border-t pt-1 md:-mx-8">{actions}</div>
 			)}
 		</article>
 	);

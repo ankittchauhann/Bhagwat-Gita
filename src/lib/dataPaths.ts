@@ -17,6 +17,10 @@ export function commentaryPath(chapterNumber: number, verseNumber: number) {
 	return `/commentary/${chapterNumber}/${verseNumber}.json`;
 }
 
+export function searchPath(script: "latin" | "devanagari") {
+	return `/search/${script}.json`;
+}
+
 export function dataUrl(path: string) {
 	return `${DATA_BASE_URL}${path}`;
 }
@@ -47,7 +51,7 @@ export function savedFileOf(url: string): SavedFile | null {
 }
 
 export function cacheNameFor(path: string) {
-	if (path.startsWith("/chapter/")) {
+	if (path.startsWith("/chapter/") || path.startsWith("/search/")) {
 		return TEXT_CACHE;
 	}
 	if (path.startsWith("/commentary/")) {

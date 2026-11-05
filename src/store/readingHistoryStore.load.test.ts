@@ -51,4 +51,25 @@ describe("useReadingHistory on a fresh page load", () => {
 			JSON.parse(localStorage.getItem("gita_reading_stats") ?? "{}").versesRead,
 		).toEqual(["1-1", "1-2", "1-3", "2-47"]);
 	});
+
+	it("turns the old streak counter into reading days", async () => {
+		localStorage.setItem(
+			"gita_reading_stats",
+			JSON.stringify({
+				versesRead: ["2-47"],
+				totalTimeSpent: 0,
+				lastReadDate: "2026-11-04",
+				readingStreak: 3,
+			}),
+		);
+		vi.resetModules();
+
+		const { useReadingHistory } = await import("./readingHistoryStore");
+		expect(useReadingHistory.getState().stats.readDays).toEqual({
+			"2026-11-02": 0,
+			"2026-11-03": 0,
+			"2026-11-04": 0,
+		});
+		expect(useReadingHistory.getState().isVerseRead(2, 47)).toBe(true);
+	});
 });

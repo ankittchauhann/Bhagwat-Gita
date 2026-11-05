@@ -1,5 +1,12 @@
-import { Button, IconButton, iconButtonClass } from "@/components/ui/button";
+import { NoteSheet } from "@/components/saved/NoteSheet";
+import {
+	Button,
+	IconButton,
+	buttonClass,
+	iconButtonClass,
+} from "@/components/ui/button";
 import { loadChapter } from "@/lib/gitaData";
+import { verseKey } from "@/lib/progress";
 import { WIDE_SCREEN, useMediaQuery } from "@/lib/useMediaQuery";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/store/preferencesStore";
@@ -10,7 +17,7 @@ import {
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
-import { ALargeSmall, ArrowLeft, ChevronDown } from "lucide-react";
+import { ALargeSmall, ArrowLeft, ChevronDown, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { ChapterRuler, ProgressStrip, StepLink } from "./ChapterRuler";
@@ -20,6 +27,7 @@ import {
 	TRANSLATION_SECTION_ID,
 } from "./SettingsSheet";
 import { TranslationColumns } from "./TranslationColumns";
+import { VerseActions, VerseNote } from "./VerseActions";
 import { VerseGridSheet } from "./VerseGridSheet";
 import { VerseLeaf } from "./VerseLeaf";
 import { VerseStudy, WideStudy } from "./VerseStudy";
@@ -37,6 +45,7 @@ const route = getRouteApi("/chapter/$chapterId/verse/$verseNumber");
 type OpenSheet =
 	| { kind: "settings"; section: string | null }
 	| { kind: "verses" }
+	| { kind: "note" }
 	| null;
 
 function isTypingTarget(target: EventTarget | null) {
@@ -110,6 +119,12 @@ export function ReaderPage() {
 	const verseCommentators = commentators.filter((author) =>
 		verse.commentators.includes(author.id),
 	);
+	const bookmark = useReadingHistory((state) =>
+		state.bookmarks.find(
+			(entry) => entry.id === verseKey(chapter.number, verse.number),
+		),
+	);
+	const editNote = () => setSheet({ kind: "note" });
 
 	// While another chapter loads, the old verse is still on screen; a second step from it would skip a verse.
 	const isNavigating = useCallback(
@@ -236,6 +251,20 @@ export function ReaderPage() {
 						</span>
 					</p>
 					{wide ? (
+						<Link to="/search" className={buttonClass("quiet")}>
+							<Search aria-hidden="true" />
+							Search
+						</Link>
+					) : (
+						<Link
+							to="/search"
+							aria-label="Search"
+							className={iconButtonClass()}
+						>
+							<Search aria-hidden="true" />
+						</Link>
+					)}
+					{wide ? (
 						<Button
 							onClick={() => setSheet({ kind: "settings", section: null })}
 						>
@@ -298,15 +327,29 @@ export function ReaderPage() {
 							{SPEAKER_NAMES[verse.speaker]} said
 						</p>
 					</div>
-					<button
-						type="button"
-						onClick={() => setSheet({ kind: "verses" })}
-						aria-label={`${verseNumber} of ${chapter.versesCount}, choose a verse`}
-						className="-mr-2 inline-flex min-h-11 items-center gap-1 rounded-[6px] px-2 text-[15px] font-semibold tabular-nums hover:bg-surface"
-					>
-						{verseNumber} of {chapter.versesCount}
-						<ChevronDown aria-hidden="true" className="size-4 text-muted" />
-					</button>
+					<div className="flex items-center">
+						{wide && (
+							<>
+								<VerseActions
+									chapter={chapter}
+									verse={verse}
+									translator={translator}
+									wide
+									onEditNote={editNote}
+								/>
+								<span aria-hidden="true" className="mx-2 h-6 w-px bg-rule" />
+							</>
+						)}
+						<button
+							type="button"
+							onClick={() => setSheet({ kind: "verses" })}
+							aria-label={`${verseNumber} of ${chapter.versesCount}, choose a verse`}
+							className="-mr-2 inline-flex min-h-11 items-center gap-1 rounded-[6px] px-2 text-[15px] font-semibold tabular-nums hover:bg-surface"
+						>
+							{verseNumber} of {chapter.versesCount}
+							<ChevronDown aria-hidden="true" className="size-4 text-muted" />
+						</button>
+					</div>
 				</div>
 				{!wide && (
 					<ProgressStrip
@@ -331,6 +374,23 @@ export function ReaderPage() {
 						onChangeTranslator={() =>
 							setSheet({ kind: "settings", section: TRANSLATION_SECTION_ID })
 						}
+						actions={
+							!wide && (
+								<VerseActions
+									chapter={chapter}
+									verse={verse}
+									translator={translator}
+									wide={false}
+									onEditNote={editNote}
+								/>
+							)
+						}
+					/>
+					<VerseNote
+						chapter={chapter}
+						verse={verse}
+						wide={wide}
+						onEditNote={editNote}
 					/>
 					{wide ? (
 						<>
@@ -395,6 +455,11 @@ export function ReaderPage() {
 				chapter={chapter}
 				translators={translators}
 				focusSection={sheet?.kind === "settings" ? sheet.section : null}
+			/>
+			<NoteSheet
+				bookmark={bookmark}
+				open={sheet?.kind === "note"}
+				onClose={() => setSheet(null)}
 			/>
 			<VerseGridSheet
 				open={sheet?.kind === "verses"}

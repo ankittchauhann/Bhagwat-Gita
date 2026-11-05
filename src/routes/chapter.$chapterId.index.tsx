@@ -1,4 +1,10 @@
-import { loadChapter, loadChapters, parseChapterNumber } from "@/lib/gitaData";
+import {
+	STORAGE_WAIT,
+	atMost,
+	loadChapter,
+	loadChapters,
+	parseChapterNumber,
+} from "@/lib/gitaData";
 import { SITE_TITLE } from "@/lib/site";
 import { startOfflineLibrary } from "@/store/offlineStore";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
@@ -43,7 +49,7 @@ export const Route = createFileRoute("/chapter/$chapterId/")({
 		const [chapterFile, { chapters }] = await Promise.all([
 			loadChapter(chapterNumber),
 			loadChapters(),
-			startOfflineLibrary(),
+			atMost(startOfflineLibrary(), STORAGE_WAIT),
 		]);
 		return { chapterFile, chapters };
 	},

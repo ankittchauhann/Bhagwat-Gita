@@ -19,6 +19,7 @@ import {
 	creditsFor,
 	downloadSizesFor,
 	jsonFile as json,
+	searchFilesFor,
 	sitemapXml,
 	validateBuiltData,
 } from "./gita-data";
@@ -89,6 +90,13 @@ async function build() {
 		path.join(DATA_DIR, "sizes.json"),
 		json(downloadSizesFor(data)),
 	);
+	await mkdir(path.join(DATA_DIR, "search"), { recursive: true });
+	for (const [script, file] of Object.entries(searchFilesFor(data))) {
+		await writeFile(
+			path.join(DATA_DIR, "search", `${script}.json`),
+			json(file),
+		);
+	}
 	await writeFile(SITEMAP_FILE, sitemapXml(SITE_URL, data.chapterFiles));
 
 	report(data);
@@ -151,6 +159,18 @@ async function check() {
 		errors.push(
 			`public/data/${DATA_VERSION}/sizes.json is out of date; run \`bun run data\``,
 		);
+	}
+
+	for (const [script, file] of Object.entries(searchFilesFor(data))) {
+		const committed = await readFile(
+			path.join(DATA_DIR, "search", `${script}.json`),
+			"utf8",
+		).catch(() => null);
+		if (committed !== json(file)) {
+			errors.push(
+				`public/data/${DATA_VERSION}/search/${script}.json is out of date; run \`bun run data\``,
+			);
+		}
 	}
 
 	const sitemap = await readFile(SITEMAP_FILE, "utf8");

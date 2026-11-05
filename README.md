@@ -31,6 +31,13 @@ The redesign roadmap is in [REDESIGN_ACTION_PLAN.md](REDESIGN_ACTION_PLAN.md).
 - **Offline pages that help**: the chapter list marks what isn't saved, and a chapter that isn't saved says so, links to the ones that are, and opens by itself when the connection returns
 - **Installable** on Android, iPhone and desktop (manifest, maskable icon, About explains how); a "New version is ready · Reload" message after each deploy
 
+### 🔎 **Search, saved verses and progress**
+
+- **Search** (`/search`): type a reference (`2.47`, `2 47`, `ch 2 v 47`, `२.४७`) to go straight to it, or words to search the five English translations and the transliteration; Devanagari searches the Sanskrit and the two Hindi translations. Matching words are marked, and the translation that matches best is shown. Press `/` anywhere to search.
+- **Saved verses** (`/saved`): Save on any verse, add a note of your own, and find them in book order or by when you saved them. Removing offers Undo. Everything stays in this browser.
+- **Share and Copy** on every verse: the Sanskrit as printed, the translation with its translator, and the link. Share opens the phone's share sheet.
+- **Your reading** on the chapter list: the streak of days, verses read in the last 7 days, and the total, from the local calendar day
+
 ### 🎯 **Verse reader** (built phone first)
 
 - **One verse per screen**, at its own address, e.g. `/chapter/2/verse/47`
@@ -104,6 +111,8 @@ public/data/v2/
   commentary/{chapter}/{verse}.json  # 16 commentators, loaded only when the reader opens commentary
   credits.json                       # counts, speakers, translators and commentators (home figures, About)
   sizes.json                         # bytes of each chapter file and its commentaries (download sizes)
+  search/latin.json                  # search text: English translations and transliteration (221 KiB gzip)
+  search/devanagari.json             # search text: Sanskrit and Hindi translations (131 KiB gzip)
 public/sitemap.xml                   # 722 URLs: home, chapter list, About, 18 chapters, 701 verses
 public/images/                       # six Wikimedia Commons pictures (CC BY-SA 4.0), resized only
 ```
@@ -169,6 +178,9 @@ No API key or environment variables are needed.
 │   │   ├── reader/                 # Verse reader: page, verse leaf, study sections, settings and verse-grid sheets
 │   │   ├── home/                   # Home page: title card, crossfade, today's verse, scroll-in motion
 │   │   ├── offline/                # Chapter downloads, the chapter list's offline section, notices, retry when back online
+│   │   ├── search/                 # Search page and the "/" shortcut
+│   │   ├── saved/                  # Saved page, note sheet, saving a verse
+│   │   ├── ReadingProgress.tsx     # Streak, last 7 days and total on the chapter list
 │   │   ├── AboutPage.tsx           # Sources and credits
 │   │   ├── AppHeader.tsx           # Header of the home, chapter, list, About and 404 pages
 │   │   ├── ChapterOverview.tsx     # Chapter page
@@ -181,22 +193,29 @@ No API key or environment variables are needed.
 │   │   ├── gitaData.ts             # Data types, cached loaders, URL parsing
 │   │   ├── dataPaths.ts            # Data version, file paths and cache names (shared with the service worker)
 │   │   ├── offline.ts              # What is saved, downloads, sizes, storage
+│   │   ├── search.ts               # Reference parser, search options, highlighting (unit-tested)
+│   │   ├── search.worker.ts        # Builds the search index off the main thread (MiniSearch)
+│   │   ├── useVerseSearch.ts       # Loads a script's search file once and queries the worker
+│   │   ├── citation.ts             # The text Share and Copy hand over
 │   │   ├── install.ts              # The browser's install prompt
 │   │   ├── chapterGroups.ts        # Karma 1–6, Bhakti 7–12, Jñāna 13–18
 │   │   ├── credits.ts              # Pictures, fonts and links credited on About
-│   │   ├── progress.ts             # Verses read per chapter and where "Continue" leads
+│   │   ├── progress.ts             # Verses read per chapter, where "Continue" leads, streak and reading days
 │   │   ├── todaysVerse.ts          # The verse for a calendar day
 │   │   ├── site.ts                 # Production URL and default metadata
 │   │   └── theme.ts                # System, Light or Dark (mirrors the inline script in index.html)
 │   ├── store/
 │   │   ├── preferencesStore.ts     # Translators, commentator, text sizes, visible and open sections
 │   │   ├── offlineStore.ts         # Saved chapters, the running download, storage used
+│   │   ├── noticeStore.ts          # Short messages such as "Saved 2.47 · View saved"
 │   │   └── readingHistoryStore.ts  # Last position, history, bookmarks, read verses
 │   ├── routes/
 │   │   ├── __root.tsx
 │   │   ├── index.tsx                              # /
 │   │   ├── chapters.tsx                           # /chapters
 │   │   ├── about.tsx                              # /about
+│   │   ├── search.tsx                             # /search?q=
+│   │   ├── saved.tsx                              # /saved
 │   │   ├── chapter.$chapterId.index.tsx           # /chapter/2 (old ?verse= links redirect to the verse)
 │   │   └── chapter.$chapterId.verse.$verseNumber.tsx  # /chapter/2/verse/47
 │   └── styles.css
@@ -309,7 +328,7 @@ The phases, their acceptance criteria and their status are in [REDESIGN_ACTION_P
 - [x] Phase 2: design system and the mobile reader
 - [x] Phase 3: chapter list, chapter page, home, About
 - [x] Phase 4: offline reading, downloads, install and updates (recorded recitation waits on D-2)
-- [ ] Phase 5: search, saved verses, progress, sharing, today's verse
+- [x] Phase 5: search, saved verses with notes, progress, sharing (today's verse shipped in Phase 3)
 - [ ] Phase 6: prerendering, SEO, launch
 
 ## 🤝 Contributing

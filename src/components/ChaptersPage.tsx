@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/AppHeader";
+import { ReadingProgress } from "@/components/ReadingProgress";
 import { OfflineLibrary } from "@/components/offline/OfflineLibrary";
 import { OfflineNotice } from "@/components/offline/OfflineNotice";
 import { buttonClass } from "@/components/ui/button";
@@ -84,31 +85,39 @@ export function ChaptersPage() {
 					<OfflineNotice saved={library.text.size} />
 				)}
 
-				{lastPosition && lastChapter && !query && (
-					<Link
-						to="/chapter/$chapterId/verse/$verseNumber"
-						params={{
-							chapterId: String(lastPosition.chapterId),
-							verseNumber: String(lastPosition.verseNumber),
-						}}
-						className="mt-6 flex items-center justify-between gap-4 rounded-[8px] bg-leaf px-5 py-4 hover:bg-surface"
-					>
-						<span className="min-w-0">
-							<span className="block text-[14px] text-muted">
-								Continue where you stopped
-							</span>
-							<span className="mt-0.5 block truncate text-[18px] font-bold lg:text-[20px]">
-								{lastPosition.chapterId}.{lastPosition.verseNumber} ·{" "}
-								{lastChapter.nameTranslation}
-							</span>
-						</span>
-						<span
-							aria-hidden="true"
-							className={buttonClass("primary", "shrink-0")}
-						>
-							Continue
-						</span>
-					</Link>
+				{!query && (totalRead > 0 || lastPosition) && (
+					<div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-2 lg:gap-4">
+						<ReadingProgress totalVerses={totalVerses} />
+						{lastPosition && lastChapter && (
+							<Link
+								to="/chapter/$chapterId/verse/$verseNumber"
+								params={{
+									chapterId: String(lastPosition.chapterId),
+									verseNumber: String(lastPosition.verseNumber),
+								}}
+								className="flex items-center justify-between gap-4 rounded-[8px] bg-leaf px-5 py-4 hover:bg-surface lg:flex-col lg:items-start lg:px-6 lg:py-5"
+							>
+								<span className="min-w-0">
+									<span className="block text-[14px] text-muted">
+										Continue where you stopped
+									</span>
+									<span className="mt-0.5 block truncate text-[18px] font-bold lg:text-[24px]">
+										{lastPosition.chapterId}.{lastPosition.verseNumber} ·{" "}
+										{lastChapter.nameTranslation}
+									</span>
+									<span className="mt-1 hidden text-[15px] text-muted lg:block">
+										{lastChapter.nameMeaning}
+									</span>
+								</span>
+								<span
+									aria-hidden="true"
+									className={buttonClass("primary", "shrink-0")}
+								>
+									Continue
+								</span>
+							</Link>
+						)}
+					</div>
 				)}
 
 				{groups.length === 0 ? (

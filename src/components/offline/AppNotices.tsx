@@ -1,5 +1,6 @@
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { cn } from "@/lib/utils";
+import { useNotices } from "@/store/noticeStore";
 import { type ReactNode, useEffect, useState } from "react";
 
 const HOUR = 60 * 60 * 1000;
@@ -41,6 +42,7 @@ export function AppNotices() {
 		},
 	});
 	const [connection, setConnection] = useState<Connection>(null);
+	const { notice, dismiss } = useNotices();
 
 	useEffect(() => {
 		const show = () => setConnection(navigator.onLine ? "online" : "offline");
@@ -62,6 +64,17 @@ export function AppNotices() {
 		);
 		return () => clearTimeout(timer);
 	}, [connection]);
+
+	useEffect(() => {
+		if (!notice) {
+			return;
+		}
+		const timer = setTimeout(
+			() => dismiss(notice.id),
+			notice.action ? 8000 : 4000,
+		);
+		return () => clearTimeout(timer);
+	}, [notice, dismiss]);
 
 	useEffect(() => {
 		if (!offlineReady) {
@@ -114,6 +127,30 @@ export function AppNotices() {
 				</Notice>
 			)}
 			{connection === "online" && <Notice>Back online.</Notice>}
+			{notice && (
+				<Notice
+					key={notice.id}
+					actions={
+						notice.action && (
+							<button
+								type="button"
+								onClick={() => {
+									notice.action?.run();
+									dismiss(notice.id);
+								}}
+								className={cn(
+									actionClass,
+									"bg-ground text-ink hover:opacity-90",
+								)}
+							>
+								{notice.action.label}
+							</button>
+						)
+					}
+				>
+					{notice.text}
+				</Notice>
+			)}
 		</div>
 	);
 }

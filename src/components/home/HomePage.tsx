@@ -94,10 +94,16 @@ function Hero() {
 				</div>
 				<nav
 					aria-label="On this site"
-					className="flex flex-wrap justify-center gap-x-7 gap-y-1 px-5 pb-5 text-[16px] font-semibold lg:pb-7"
+					className="flex flex-wrap justify-center gap-x-6 gap-y-0 px-5 pb-5 text-[16px] font-semibold lg:gap-x-7 lg:pb-7"
 				>
 					<Link to="/chapters" className="flex min-h-11 items-center">
 						Chapters
+					</Link>
+					<Link to="/search" className="flex min-h-11 items-center">
+						Search
+					</Link>
+					<Link to="/saved" className="flex min-h-11 items-center">
+						Saved
 					</Link>
 					<a href="#today" className="flex min-h-11 items-center">
 						Today's verse

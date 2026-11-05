@@ -4,6 +4,7 @@ import {
 	chapterPath,
 	commentaryPath,
 	dataUrl,
+	searchPath,
 } from "./dataPaths";
 
 export { DATA_VERSION } from "./dataPaths";
@@ -75,6 +76,22 @@ export interface ChapterFile {
 
 export type VerseCommentary = Record<string, string>;
 
+// One file per script, so a reader typing in English never downloads the Devanagari one.
+export type SearchScript = "latin" | "devanagari";
+
+export interface SearchFile {
+	authors: { id: number; name: string }[];
+	// c, v: reference; s: speaker; l: first Sanskrit line, for display; t: searched verse text; x: translations in `authors` order.
+	verses: {
+		c: number;
+		v: number;
+		s: Speaker;
+		l: string;
+		t: string;
+		x: string[];
+	}[];
+}
+
 // Bytes each part takes once saved on the device.
 export interface DownloadSizes {
 	chapters: { number: number; text: number; commentary: number }[];
@@ -95,6 +112,16 @@ export class DataLoadError extends Error {
 }
 
 const cache = new Map<string, Promise<unknown>>();
+
+// Storage can stall on a busy device; reading never waits on it longer than this.
+export const STORAGE_WAIT = 300;
+
+export function atMost(promise: Promise<unknown>, milliseconds: number) {
+	return Promise.race([
+		promise.catch(() => {}),
+		new Promise<void>((resolve) => setTimeout(resolve, milliseconds)),
+	]);
+}
 
 // Every chapter and commentary that loads is kept for offline reading, even before the service worker takes over.
 async function keep(path: string, response: Response) {
@@ -129,7 +156,7 @@ function loadJson<T>(path: string): Promise<T> {
 			}
 			const [data] = await Promise.all([
 				response.clone().json() as Promise<T>,
-				keep(path, response),
+				atMost(keep(path, response), STORAGE_WAIT),
 			]);
 			return data;
 		})
@@ -152,6 +179,10 @@ export function loadCredits() {
 
 export function loadDownloadSizes() {
 	return loadJson<DownloadSizes>("/sizes.json");
+}
+
+export function loadSearchFile(script: SearchScript) {
+	return loadJson<SearchFile>(searchPath(script));
 }
 
 export function loadChapter(chapterNumber: number) {
