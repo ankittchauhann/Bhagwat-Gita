@@ -1,16 +1,9 @@
 import type { Author, Verse } from "@/lib/gitaData";
 import { cn } from "@/lib/utils";
 import { usePreferences } from "@/store/preferencesStore";
-import { devanagariNumber } from "./verseNavigation";
+import { devanagariNumber, halfVerses } from "./verseNavigation";
 
 const DEVANAGARI = /[ऀ-ॿ]/;
-
-// A long-metre verse has four quarter-lines; a wide screen sets each pair on one line, as printed editions do.
-function halfVerses(lines: string[]) {
-	return lines.length === 4
-		? [`${lines[0]} ${lines[1]}`, `${lines[2]} ${lines[3]}`]
-		: lines;
-}
 
 export function ChangeButton({
 	label,

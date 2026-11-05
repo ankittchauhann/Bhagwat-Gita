@@ -1,4 +1,6 @@
+import { AppHeader } from "@/components/AppHeader";
 import { Button, buttonClass } from "@/components/ui/button";
+import { CHAPTER_COUNT } from "@/lib/gitaData";
 import {
 	type ErrorComponentProps,
 	Link,
@@ -7,13 +9,32 @@ import {
 import { CircleAlert } from "lucide-react";
 import type { ReactNode } from "react";
 
-function StatusPage({ children }: { children: ReactNode }) {
+function StatusPage({
+	marker,
+	children,
+	after,
+}: {
+	marker: string;
+	children: ReactNode;
+	after?: ReactNode;
+}) {
 	return (
-		<main className="flex min-h-dvh items-center justify-center bg-ground px-4 py-12">
-			<div className="w-full max-w-md rounded-[8px] bg-leaf p-6 md:p-8">
-				{children}
-			</div>
-		</main>
+		<div className="min-h-dvh bg-ground">
+			<AppHeader backTo="/" />
+			<main className="px-4 pt-8 pb-16 lg:pt-20">
+				<div className="ruled-leaf mx-auto max-w-2xl rounded-[8px] bg-leaf px-8 py-10 text-center md:px-16 md:py-14 lg:px-28">
+					<p
+						lang="sa"
+						aria-hidden="true"
+						className="font-sanskrit text-[32px] text-rubric"
+					>
+						॥ {marker} ॥
+					</p>
+					<div className="mt-4 flex flex-col items-center">{children}</div>
+				</div>
+				{after}
+			</main>
+		</div>
 	);
 }
 
@@ -38,13 +59,13 @@ export function RouteError({ error }: ErrorComponentProps) {
 	const router = useRouter();
 
 	return (
-		<StatusPage>
-			<h1 className="flex items-center gap-2 text-[20px] font-bold">
+		<StatusPage marker="!">
+			<h1 className="flex items-center gap-2 text-[22px] font-bold">
 				<CircleAlert aria-hidden="true" className="size-5 text-rubric" />
 				Couldn't load this page
 			</h1>
-			<p className="mt-2 text-[15px] text-muted">{error.message}</p>
-			<div className="mt-6 flex flex-wrap gap-3">
+			<p className="mt-2 text-[16px] text-muted">{error.message}</p>
+			<div className="mt-6 flex flex-wrap justify-center gap-3">
 				<Button variant="primary" onClick={() => router.invalidate()}>
 					Try again
 				</Button>
@@ -58,13 +79,44 @@ export function RouteError({ error }: ErrorComponentProps) {
 
 export function NotFoundPage() {
 	return (
-		<StatusPage>
-			<h1 className="text-[20px] font-bold">Page not found</h1>
-			<p className="mt-2 text-[15px] text-muted">
+		<StatusPage
+			marker="४०४"
+			after={
+				<nav
+					aria-labelledby="not-found-chapters"
+					className="mx-auto mt-10 max-w-2xl"
+				>
+					<h2
+						id="not-found-chapters"
+						className="text-center text-[16px] font-semibold"
+					>
+						Or open a chapter
+					</h2>
+					<ol className="mt-4 grid grid-cols-6 gap-1.5 sm:grid-cols-9">
+						{Array.from({ length: CHAPTER_COUNT }, (_, index) => index + 1).map(
+							(chapter) => (
+								<li key={chapter}>
+									<Link
+										to="/chapter/$chapterId"
+										params={{ chapterId: String(chapter) }}
+										aria-label={`Chapter ${chapter}`}
+										className="flex h-11 items-center justify-center rounded-[6px] bg-leaf text-[15px] font-semibold tabular-nums hover:bg-rule"
+									>
+										{chapter}
+									</Link>
+								</li>
+							),
+						)}
+					</ol>
+				</nav>
+			}
+		>
+			<h1 className="text-[22px] font-bold">Page not found</h1>
+			<p className="mt-2 max-w-[40ch] text-[16px] text-muted">
 				This chapter or verse doesn't exist. The Bhagavad Gita has 18 chapters
 				and 701 verses; open the list to choose one.
 			</p>
-			<div className="mt-6 flex flex-wrap gap-3">
+			<div className="mt-6 flex flex-wrap justify-center gap-3">
 				<Link to="/chapters" className={buttonClass("primary")}>
 					All chapters
 				</Link>

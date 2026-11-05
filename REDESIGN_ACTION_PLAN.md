@@ -769,16 +769,93 @@ The weakest remaining parts are outside the reader: the home page and the chapte
 
 ### Phase 3: Chapter list, chapter page, home, about (L)
 
-- [ ] Build the chapter list rows with progress, and the chapter page with English and Hindi summaries and the verse grid.
-- [ ] Build the home page from the direction sheet. Download images 1–5 with `assets.mjs --get` after viewing 3 and 4.
-- [ ] Build the About and credits page and the footer imprint; design the 404 page.
+**Status: done** on branch `feature/chapter-pages`. The screens were drawn first, on the second row of the Claude Design canvas ([Gita Reader Layouts](https://claude.ai/artifact/9N4h8aeA9XwmffeQAySCSm)), then built.
 
-**Done when:**
+The owner left three choices to the defaults:
 
-- The inspector shows 0 FAIL on `/` (page rules) and on `/chapters`, `/chapter/2` and `/about` (`--app`) at all widths.
-- The home `h1` is at most two lines at every width.
-- At least 4 real images are shown, each credited.
-- A written critique in the `critique.md` §4 format scores ≥ 7.5 overall, within three rounds at most. If it scores lower, report the real score rather than rounding up.
+- **D-3:** yes, three groups of six: Karma 1–6, Bhakti 7–12, Jñāna 13–18.
+- **The home page's note:** a draft in the maintainer's voice, to be edited, in `src/components/home/HomePage.tsx` (`MaintainerNote`). It states only facts about the app.
+- **Contact link:** GitHub. The "Report a mistake" button opens the repository's issues.
+
+- [x] Build the chapter list rows with progress, and the chapter page with English and Hindi summaries and the verse grid.
+  - **Chapter list:** three columns on laptops, one per group; progress per chapter; a "Continue where you stopped" row; search kept.
+  - **Chapter page, `/chapter/:c`:**
+    - Sanskrit and English names, group, "Continue at …" (the last verse opened there, else the first unread) or "Start reading at c.1".
+    - Progress bar, verses per speaker, summary in English or Hindi (clamped on phones, with "Read the whole summary"), verse grid, previous and next chapter.
+    - The reader's back arrow now leads here. `/chapter/:c?verse=n` still redirects to the verse.
+- [x] Build the home page from the direction sheet ("the page is the object", the Gita's own manuscript leaf).
+  - **First screen:** a red-and-paper striped title card beside three manuscript pages that crossfade slowly. The other two load after the first screen; they never load under reduced motion.
+  - **Then:** figures counted from the data, a palm-leaf plate, a scalloped contents sheet, today's verse, the maintainer's note with a tear-off strip, and a footer shaped like the back of the card.
+  - **Today's verse moved here from Phase 5**, because it is the page's live thing. It is the same verse for everyone on a date, one verse a day in order through all 701, with Sanskrit, Transliteration and Translation tabs that work from the keyboard. It loads after the first screen.
+  - **Six pictures from Wikimedia Commons** (CC BY-SA 4.0), each viewed before use and resized only (640, 900, 1200 and a thumbnail): Devanagari 4.7–4.10, Gurmukhi 3.1–3.2, Bengali chapters 1–2, a Malayalam palm leaf, a Grantha palm leaf, and the Kurukshetra relief at Angkor Wat. The "Kannada" scan was dropped: it shows a hymn to Krishna, not the Gita.
+- [x] Build the About and credits page and the footer imprint; design the 404 page.
+  - **`/about`:** the text and its terms, what the reader changes, 7 translators and 16 commentators read from the new `credits.json`, the 6 pictures with links, 3 fonts, privacy and code.
+  - **404:** a ruled leaf with a red ॥ ४०४ ॥ and links to all 18 chapters.
+- [x] **Data:**
+  - `credits.json` (counts, speakers, translators, commentators) is generated and checked by `bun run data:check`.
+  - The sitemap lists 722 addresses (adding the 18 chapter pages and `/about`).
+- [x] Shared pieces: `AppHeader`, `VerseGrid` (used by the chapter page and the reader's sheet), `chapterGroups`, `progress`, `todaysVerse`, `credits`.
+
+**Results:**
+
+- **Inspector** at 1440, 1024, 768 and 390:
+  - `/` (page rules): 0 FAIL. Three WARNs, all defended:
+    - Three typefaces (Devanagari needs its own).
+    - No footage: no honest clip of these manuscripts exists, and the crossfade is the moving picture.
+    - A long-metre verse running to 4 lines at exactly 1024px, which is verse, not a headline.
+  - `/chapters`, `/about` and the 404 page: 0 FAIL, 0 WARN.
+  - `/chapter/2`: 0 FAIL, plus the typeface WARN.
+  - The reader: unchanged.
+- **Home `h1`:** two lines at every width.
+- **Pictures:** 6 real pictures on the home page, each captioned and credited on `/about`.
+- **Lint:** 0 FAIL, 0 WARN under both page and app rules. The settings sheet's shadow is marked as a floating overlay.
+- **axe:** 0 violations on home, the chapter list, the chapter page, About, the reader, both sheets and the 404 page, in light and dark.
+- **Tests:**
+  - Vitest 50/50. New: groups, progress, today's verse across 701 days, credits, the 722-address sitemap.
+  - Playwright 113 passed. A second full run was also clean (218 of 218, no flaky tests). New in `e2e/pages.spec.ts`:
+    - continue and progress, the summary language, chapter links, groups and progress on the list;
+    - today's verse checked against the same calculation, its keyboard tabs, and that it comes into view after loading late (confirmed to fail without the fix);
+    - the pictures arriving after the first screen, the credits, and the sitemap.
+- **Lighthouse:**
+
+  | Page | Desktop Performance | Mobile Performance | Mobile LCP |
+  | --- | --- | --- | --- |
+  | Home | 97 | 71 | 5.2 s |
+  | Chapter page | 99 | 82 | — |
+  | Chapter list | 99 | 83 | — |
+  | About | 99 | 82 | — |
+
+  Accessibility, Best Practices and SEO are 100 on every page. Two fixes helped the mobile home page: deferring the other two hero pictures, and a 900px size, together cutting it from 1,235 kB to 722 kB.
+
+**Critique** (`critique.md` §4), home page:
+
+```text
+ROUND 1
+Seen in one second: a striped red-and-paper title card beside a page of a Devanagari Gita manuscript
+  with red verse marks; "The Bhagavad Gita, verse by verse"; one dark "Start reading" button.
+Idea (one sentence): the Gita's own manuscript (black ink, red rules and ॥ marks, palm leaves) becomes
+  the site's stationery: title card, contents sheet, verse leaf, the back of the card.
+Live thing: today's verse, the same for everyone each day, in order through all 701, in three tabs.
+Layout words by section: hero=striped card beside crossfading manuscript / intro=title, note, four
+  figures, palm-leaf plate / list=scalloped contents sheet on a field band / showcase=square plate and
+  tabs / about=maintainer's letter with tear-off strip / footer=back of the card.
+Scores: design 8 · usability 8 · creativity 8 · content 8 → overall 8.0
+Caps applied: none (0 FAIL; two-line headline everywhere; 6 real pictures; section entrances and a
+  crossfade; a live thing; a real button on the first screen).
+Top three problems:
+1. Phone first screen (home-390-fold): "About and sources" wrapped onto its own line in the card's
+   link row. Fixed: the card says "About"; the footer keeps the full name.
+2. Dark theme (home-1440-dark): the stripes in the light-on-dark red were loud. Fixed: a deeper red
+   for the band in dark mode.
+3. Contents band on a laptop (desktop-page-02): the 640px sheet leaves wide field margins. Kept: it is
+   the printed sheet of the blueprint, and the band reads as a deliberate rest.
+```
+
+App screens, checked against app-screens §2.7:
+
+- **Chapter page:** the question ("what is this chapter and where do I start?") is answered by the largest block, the names and "Continue". The verse grid uses the full width. On a laptop the left column ends about 270px above the summary panel. That is acceptable because the grid below shares both edges.
+- **Chapter list:** three equal columns that end level, and progress figures computed from your reading.
+- **About:** sections in the two-column settings pattern, nothing invented.
 
 ### Phase 4: Recitation and offline (M)
 
@@ -798,7 +875,7 @@ The audio work is blocked on D-2; offline text is not.
 
 - [ ] Search with MiniSearch 7.2.0, lazy-loaded. It jumps to references (`2.47`, `2 47`, `ch 2 v 47`) and does full-text search over the translations and IAST.
 - [ ] Saved verses with notes; progress on the chapter list and chapter pages; a streak counter (the store already exists).
-- [ ] Share through `navigator.share`, falling back to copying with a citation; today's verse chosen from the date.
+- [ ] Share through `navigator.share`, falling back to copying with a citation. (Today's verse shipped in Phase 3.)
 
 **Done when:**
 
@@ -869,7 +946,7 @@ The audio work is blocked on D-2; offline text is not.
 | --- | --- | --- |
 | D-1 | Default translators | English: Swami Sivananda (his is also the only English commentary). Hindi: Swami Ramsukhdas |
 | D-2 | Audio rights | Ask the dataset maintainers through bhagavadgita.com/contact. Ship without audio until they confirm |
-| D-3 | Group chapters into the traditional three sets of six | Yes, on the home contents sheet and the chapter list. Confirm the group names |
+| D-3 | Group chapters into the traditional three sets of six | **Decided in Phase 3:** yes, Karma 1–6, Bhakti 7–12, Jñāna 13–18, on the home contents sheet and the chapter list |
 | D-4 | Prerender approach | TanStack Start prerender (Option A, §8.8) |
 | D-5 | Analytics and monitoring | A privacy-friendly analytics service; error monitoring optional |
 | D-6 | Production domain | Needed for canonical URLs, absolute OG images and the sitemap |

@@ -5,6 +5,7 @@ import {
 	type SourceAuthoredText,
 	type SourceData,
 	buildData,
+	creditsFor,
 	sitemapXml,
 	speakerOf,
 	splitSpeaker,
@@ -262,13 +263,55 @@ describe("buildData", () => {
 });
 
 describe("sitemapXml", () => {
-	it("lists home, the chapter list and every verse", () => {
+	it("lists home, the chapter list, About, every chapter and every verse", () => {
 		const { data } = buildData(fixture());
 		const xml = sitemapXml("https://example.com", data.chapterFiles);
 		expect(xml).toContain("<loc>https://example.com/</loc>");
 		expect(xml).toContain("<loc>https://example.com/chapters</loc>");
+		expect(xml).toContain("<loc>https://example.com/about</loc>");
+		expect(xml).toContain("<loc>https://example.com/chapter/1</loc>");
 		expect(xml).toContain("<loc>https://example.com/chapter/1/verse/1</loc>");
-		expect(xml.match(/<url>/g)).toHaveLength(3);
+		expect(xml.match(/<url>/g)).toHaveLength(5);
+	});
+
+	it("has 722 addresses for the committed data", () => {
+		const xml = readFileSync("public/sitemap.xml", "utf8");
+		expect(xml.match(/<url>/g)).toHaveLength(722);
+	});
+});
+
+describe("creditsFor", () => {
+	it("counts the verses, speakers, translators and commentaries of the built data", () => {
+		const { data } = buildData(fixture());
+		expect(creditsFor(data)).toMatchObject({
+			counts: {
+				chapters: 1,
+				verses: 1,
+				translators: 7,
+				commentators: 3,
+				commentaries: 2,
+			},
+			speakers: { krishna: 0, arjuna: 1, sanjaya: 0, dhritarashtra: 0 },
+		});
+	});
+
+	it("matches the committed credits file", () => {
+		const credits = JSON.parse(
+			readFileSync(`public/data/${DATA_VERSION}/credits.json`, "utf8"),
+		);
+		expect(credits.counts).toEqual({
+			chapters: 18,
+			verses: 701,
+			translators: 7,
+			commentators: 16,
+			commentaries: 11177,
+		});
+		expect(credits.speakers).toEqual({
+			krishna: 574,
+			arjuna: 86,
+			sanjaya: 40,
+			dhritarashtra: 1,
+		});
 	});
 });
 

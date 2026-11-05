@@ -11,18 +11,29 @@ export function SegmentedControl<T extends string | number>({
 	options,
 	value,
 	onChange,
+	compact = false,
 }: {
 	legend: string;
 	options: Option<T>[];
 	value: T;
 	onChange: (value: T) => void;
+	compact?: boolean;
 }) {
 	const name = useId();
 
 	return (
 		<fieldset>
-			<legend className="mb-2 text-[14px] font-semibold">{legend}</legend>
-			<div className="flex rounded-[6px] bg-surface p-1">
+			<legend
+				className={cn("mb-2 text-[14px] font-semibold", compact && "sr-only")}
+			>
+				{legend}
+			</legend>
+			<div
+				className={cn(
+					"flex rounded-[6px] bg-surface p-1",
+					compact && "w-fit [&>label]:flex-none [&>label>span]:px-3.5",
+				)}
+			>
 				{options.map((option) => (
 					<label key={option.value} className="flex-1">
 						<input

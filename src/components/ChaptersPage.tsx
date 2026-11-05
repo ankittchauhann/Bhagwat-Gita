@@ -1,42 +1,57 @@
-import { iconButtonClass } from "@/components/ui/button";
+import { AppHeader } from "@/components/AppHeader";
+import { buttonClass } from "@/components/ui/button";
+import { CHAPTER_GROUPS, groupRange } from "@/lib/chapterGroups";
+import { readCount } from "@/lib/progress";
+import { useReadingHistory } from "@/store/readingHistoryStore";
 import { Link, getRouteApi } from "@tanstack/react-router";
-import { ArrowLeft, ChevronRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 const route = getRouteApi("/chapters");
 
 export function ChaptersPage() {
 	const { chapters } = route.useLoaderData();
+	const versesRead = useReadingHistory((state) => state.stats.versesRead);
+	const lastPosition = useReadingHistory((state) => state.lastPosition);
 	const [searchTerm, setSearchTerm] = useState("");
 
 	const query = searchTerm.trim().toLowerCase();
-	const filteredChapters = chapters.filter((chapter) =>
+	const matches = (chapter: (typeof chapters)[number]) =>
 		[
 			chapter.name,
 			chapter.nameTransliterated,
 			chapter.nameTranslation,
 			chapter.nameMeaning,
-		].some((field) => field.toLowerCase().includes(query)),
+		].some((field) => field.toLowerCase().includes(query));
+	const totalVerses = chapters.reduce((sum, c) => sum + c.versesCount, 0);
+	const totalRead = chapters.reduce(
+		(sum, c) => sum + readCount(versesRead, c.number, c.versesCount),
+		0,
 	);
+	const groups = CHAPTER_GROUPS.map((group) => ({
+		group,
+		chapters: chapters.filter(
+			(chapter) =>
+				chapter.number >= group.first &&
+				chapter.number <= group.last &&
+				matches(chapter),
+		),
+	})).filter(({ chapters: list }) => list.length > 0);
+	const lastChapter = lastPosition
+		? chapters.find((chapter) => chapter.number === lastPosition.chapterId)
+		: undefined;
 
 	return (
 		<div className="min-h-dvh bg-ground">
-			<header className="mx-auto flex h-12 max-w-[760px] items-center gap-1 px-2 md:px-4 lg:h-14 lg:max-w-[1208px]">
-				<Link to="/" aria-label="Home" className={iconButtonClass()}>
-					<ArrowLeft aria-hidden="true" />
-				</Link>
-				<span lang="sa" className="font-sanskrit text-[17px]">
-					श्रीमद्भगवद्गीता
-				</span>
-			</header>
+			<AppHeader backTo="/" current="chapters" />
 
 			<main className="mx-auto max-w-[760px] px-4 pt-4 pb-16 lg:max-w-[1208px] lg:px-6">
 				<div className="lg:flex lg:items-end lg:justify-between lg:gap-8">
 					<div>
-						<h1 className="text-[24px] font-bold">Chapters</h1>
-						<p className="mt-1 text-[15px] text-muted">
-							18 chapters, {chapters.reduce((sum, c) => sum + c.versesCount, 0)}{" "}
-							verses
+						<h1 className="text-[24px] font-bold lg:text-[28px]">Chapters</h1>
+						<p className="mt-1 text-[15px] text-muted tabular-nums">
+							{chapters.length} chapters, {totalVerses} verses
+							{totalRead > 0 && ` · ${totalRead} read`}
 						</p>
 					</div>
 
@@ -56,50 +71,111 @@ export function ChaptersPage() {
 					</div>
 				</div>
 
-				{filteredChapters.length === 0 ? (
+				{lastPosition && lastChapter && !query && (
+					<Link
+						to="/chapter/$chapterId/verse/$verseNumber"
+						params={{
+							chapterId: String(lastPosition.chapterId),
+							verseNumber: String(lastPosition.verseNumber),
+						}}
+						className="mt-6 flex items-center justify-between gap-4 rounded-[8px] bg-leaf px-5 py-4 hover:bg-surface"
+					>
+						<span className="min-w-0">
+							<span className="block text-[14px] text-muted">
+								Continue where you stopped
+							</span>
+							<span className="mt-0.5 block truncate text-[18px] font-bold lg:text-[20px]">
+								{lastPosition.chapterId}.{lastPosition.verseNumber} ·{" "}
+								{lastChapter.nameTranslation}
+							</span>
+						</span>
+						<span
+							aria-hidden="true"
+							className={buttonClass("primary", "shrink-0")}
+						>
+							Continue
+						</span>
+					</Link>
+				)}
+
+				{groups.length === 0 ? (
 					<p className="mt-6 rounded-[8px] border border-dashed p-4 text-[15px]">
 						No chapters match “{searchTerm.trim()}”.
 					</p>
 				) : (
-					<ol className="mt-5 grid border-t lg:mt-8 lg:grid-flow-col lg:grid-rows-9 lg:gap-x-12">
-						{filteredChapters.map((chapter) => (
-							<li key={chapter.number} className="border-b">
-								<Link
-									to="/chapter/$chapterId/verse/$verseNumber"
-									params={{
-										chapterId: String(chapter.number),
-										verseNumber: "1",
-									}}
-									className="flex min-h-[84px] items-center gap-4 py-3 hover:bg-surface/60"
+					<div className="mt-8 grid gap-10 lg:mt-10 lg:grid-cols-3">
+						{groups.map(({ group, chapters: list }) => (
+							<section
+								key={group.name}
+								aria-labelledby={`group-${group.first}`}
+							>
+								<h2
+									id={`group-${group.first}`}
+									className="border-b-2 border-ink pb-2.5 text-[18px] font-bold"
 								>
-									<span className="w-7 shrink-0 text-right text-[18px] font-bold tabular-nums">
-										{chapter.number}
+									{group.name}{" "}
+									<span className="font-medium text-muted">
+										· {groupRange(group)}
 									</span>
-									<span className="min-w-0 flex-1">
-										<span
-											lang="sa"
-											className="block font-sanskrit text-[18px] leading-snug"
-										>
-											{chapter.name}
-										</span>
-										<span className="block text-[15px] font-semibold">
-											{chapter.nameTranslation}
-										</span>
-										<span className="block text-[14px] text-muted">
-											{chapter.nameMeaning}
-										</span>
-									</span>
-									<span className="shrink-0 text-[14px] text-muted tabular-nums">
-										{chapter.versesCount} verses
-									</span>
-									<ChevronRight
-										aria-hidden="true"
-										className="size-4 shrink-0 text-muted"
-									/>
-								</Link>
-							</li>
+								</h2>
+								<ol>
+									{list.map((chapter) => {
+										const read = readCount(
+											versesRead,
+											chapter.number,
+											chapter.versesCount,
+										);
+										return (
+											<li key={chapter.number} className="border-b">
+												<Link
+													to="/chapter/$chapterId"
+													params={{ chapterId: String(chapter.number) }}
+													className="grid grid-cols-[1.75rem_minmax(0,1fr)_auto] gap-x-3 py-3.5 hover:bg-surface/60"
+												>
+													<span className="text-right text-[18px] font-bold tabular-nums">
+														{chapter.number}
+													</span>
+													<span className="min-w-0">
+														<span
+															lang="sa"
+															className="block font-sanskrit text-[18px] leading-snug"
+														>
+															{chapter.name}
+														</span>
+														<span className="block text-[15px] font-semibold">
+															{chapter.nameTranslation}
+														</span>
+														<span className="block text-[14px] text-muted">
+															{chapter.nameMeaning}
+														</span>
+														<span
+															aria-hidden="true"
+															className="mt-2 block h-1 rounded-full bg-surface"
+														>
+															<span
+																className="block h-full rounded-full bg-ink"
+																style={{
+																	width: `${(read / chapter.versesCount) * 100}%`,
+																}}
+															/>
+														</span>
+													</span>
+													<span className="text-[14px] text-muted tabular-nums">
+														<span className="sr-only">
+															{read} of {chapter.versesCount} verses read
+														</span>
+														<span aria-hidden="true">
+															{read} / {chapter.versesCount}
+														</span>
+													</span>
+												</Link>
+											</li>
+										);
+									})}
+								</ol>
+							</section>
 						))}
-					</ol>
+					</div>
 				)}
 			</main>
 		</div>

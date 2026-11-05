@@ -23,7 +23,7 @@ for (const colorScheme of ["light", "dark"] as const) {
 
 		test("home has no accessibility violations", async ({ page }) => {
 			await page.goto("/");
-			await expect(page.locator("figure")).toBeVisible();
+			await expect(page.locator("figure").first()).toBeVisible();
 			await expectNoViolations(page);
 		});
 
@@ -53,6 +53,22 @@ for (const colorScheme of ["light", "dark"] as const) {
 			).toBeVisible();
 			await expect(
 				page.locator("[lang=en].reading-text, p.reading-text").last(),
+			).toBeVisible();
+			await expectNoViolations(page);
+		});
+
+		test("chapter page has no accessibility violations", async ({ page }) => {
+			await page.goto("/chapter/2");
+			await expect(
+				page.getByRole("heading", { level: 1, name: "Sankhya Yoga" }),
+			).toBeVisible();
+			await expectNoViolations(page);
+		});
+
+		test("about page has no accessibility violations", async ({ page }) => {
+			await page.goto("/about");
+			await expect(
+				page.getByRole("heading", { level: 1, name: "About and sources" }),
 			).toBeVisible();
 			await expectNoViolations(page);
 		});

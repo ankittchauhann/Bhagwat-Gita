@@ -220,8 +220,9 @@ export function ReaderPage() {
 						Skip to verse
 					</a>
 					<Link
-						to="/chapters"
-						aria-label="All chapters"
+						to="/chapter/$chapterId"
+						params={{ chapterId: String(chapter.number) }}
+						aria-label={`Chapter ${chapter.number} overview`}
 						className={iconButtonClass()}
 					>
 						<ArrowLeft aria-hidden="true" />
